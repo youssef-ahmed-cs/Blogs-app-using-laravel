@@ -20,7 +20,7 @@ class PostController extends Controller
 
     function create()
     {
-        $users = \App\Models\User::all();
+        $users = User::all();
         return view('Posts.create', ['users' => $users]);
     }
 
