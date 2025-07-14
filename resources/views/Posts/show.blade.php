@@ -18,9 +18,11 @@
             <b><b>Post Creator Info.</b></b>
         </div>
         <div class="card-body">
-            <h5 class="card-title text-red-700 font-bold">Name: {{$post->user_creator ? $post->user_creator->name : 'NOT FOUND'}}</h5>
-            <p class="card-text text-red-700 font-bold">Email: {{$post->user_creator ? $post->user_creator->email : 'NOT FOUND'}} </p>
-            <p class="card-text text-red-700 font-bold">Created At: {{$post->created_at->format('Y-m-d')}}</p>
+            <h5 class="card-title  font-bold">
+                Name: {{$post->user_creator ? $post->user_creator->name : 'NOT FOUND'}}</h5>
+            <p class="card-text  font-bold">
+                Email: {{$post->user_creator ? $post->user_creator->email : 'NOT FOUND'}} </p>
+            <p class="card-text  font-bold">Created At: {{$post->created_at->format('Y-m-d')}}</p>
         </div>
     </div>
 @endsection
