@@ -12,7 +12,7 @@
             <p class="card-text">Description: {{$post['description']}}</p>
         </div>
     </div>
-
+    //
     <div class="card mt-4">
         <div class="card-header">
             <b><b>Post Creator Info.</b></b>
