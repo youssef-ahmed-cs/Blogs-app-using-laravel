@@ -3,10 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Post;
-use App\Observers\PostObserver;
+use App\Policies\PostPolicy;
 use Illuminate\Support\ServiceProvider;
 
-class AppServiceProvider extends ServiceProvider
+class AuthServiceProvider extends ServiceProvider
 {
 
     public function register(): void
@@ -14,8 +14,12 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
+    protected array $policies = [
+        Post::class => PostPolicy::class,
+    ];
+
     public function boot(): void
     {
-        Post::observe(PostObserver::class);
+        //
     }
 }

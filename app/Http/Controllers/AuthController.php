@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeMail;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -28,14 +30,11 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password) // Hash the password
+            'password' => Hash::make($request->password)
         ]);
 
         Mail::to($request->email)->send(new WelcomeMail($user));
-
-        auth()->login($user);
-        return redirect()->route('dashboard')->with('success', 'User registered successfully');
-
+        return redirect()->route('login')->with('success', 'User registered successfully');
     }
 
     public function dashboard(Request $request)
@@ -45,8 +44,10 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        auth()->logout();
-        return redirect('register')->with('success', 'Logged out successfully');
+        auth()->guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/login')->with('success', 'Logged out successfully');
     }
 
     public function login(Request $request)
@@ -62,9 +63,8 @@ class AuthController extends Controller
         ]);
 
         if (auth()->attempt($request->only('email', 'password'))) {
-            return redirect()->route('dashboard')->with('success', 'Logged in successfully');
+            return redirect()->route('posts.index')->with('success', 'Logged in successfully');
         }
-
         return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
     }
 }
