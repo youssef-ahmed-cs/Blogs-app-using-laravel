@@ -38,7 +38,8 @@
                         <label for="post_creator" class="form-label">Post Creator</label>
                         <select name="post_creator" id="post_creator" class="form-select">
                             @foreach($users as $user)
-                                <option @selected($post->user_id == $user->id) value="{{$user->id}}">{{$user->name}}</option>
+                                <option
+                                    @selected($post->user_id === $user->id) value="{{$user->id}}">{{$user->name}}</option>
                             @endforeach
                         </select>
                     </div>

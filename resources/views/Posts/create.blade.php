@@ -35,16 +35,15 @@
                         </textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="post_creator" class="form-label">Post Creator</label>
-                        <select name="post_creator" id="post_creator" class="form-select">
+                        <label for="user_id" class="form-label">Post Creator</label>
+                        <select name="user_id" id="user_id" class="form-select">
                             @foreach($users as $user)
-                                <option value="{{$user->id}}">{{$user->name}}</option>
+                                <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
                             @endforeach
-
-
                         </select>
                     </div>
-
                     <button type="submit" class="btn btn-primary">Create Post</button>
                 </form>
             </div>
