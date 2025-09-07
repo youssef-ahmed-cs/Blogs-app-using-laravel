@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Posts Index
+    Blogfiy
 @endsection
 
 @section('content')
@@ -11,6 +11,9 @@
         </a>
         <a href="{{ route('dashboard') }}" class="btn btn-secondary">
             Go to Dashboard
+        </a>
+        <a href="{{ route('notifications.index') }}" class="btn btn-secondary">
+            Go to Notification
         </a>
     </div>
 

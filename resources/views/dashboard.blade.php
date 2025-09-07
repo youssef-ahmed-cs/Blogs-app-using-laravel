@@ -11,7 +11,7 @@
 <nav class="bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md sticky top-0 z-50">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
         <div class="text-2xl font-bold text-white">
-            Laravel Blogs
+            {{auth()->user()->name}}
         </div>
 
         <div class="flex items-center space-x-4">
@@ -43,6 +43,7 @@
             <br>
             You have <b class="text-purple-700">{{ $count_posts }}</b> blogs <br>
             You have <b class="text-purple-700">{{ $count_comments }}</b> comments
+            You have <b class="text-purple-700">{{ $count_comments }}</b> likes
         </h3>
     </div>
 </div>

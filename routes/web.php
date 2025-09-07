@@ -18,8 +18,8 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('login', 'loginPost')->name('login.post');
 });
 
-Route::middleware('auth:sanctum')->group(function () {
 
+Route::middleware('auth:sanctum')->group(function () {
     Route::controller(AuthController::class)->group(function () {
         Route::post('logout', 'logout')->name('logout');
         Route::get('dashboard', 'dashboard')->name('dashboard');
@@ -48,5 +48,4 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('notifications.index');
 });
 
-Route::redirect('show', '/register');
 

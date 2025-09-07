@@ -10,10 +10,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js']) <!-- to connect with tailwanCss-->
 </head>
 <body>
-
+<div>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container">
-        <a class="navbar-brand" href="{{route('posts.index')}}">{{auth()->user()->name}} Blogs</a>
+        <a class="navbar-brand" href="{{route('posts.index')}}"><b>{{auth()->user()->name}}</b> Blogs</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                 aria-expanded="false" aria-label="Toggle navigation">
