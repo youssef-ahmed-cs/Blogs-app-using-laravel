@@ -1,15 +1,5 @@
 <?php
 
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\CommentNotificationController;
-use App\Http\Controllers\LikeController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\AuthController;
-
-Route::get('/', static function () {
-    return view('welcome');
-});
 
 Route::controller(AuthController::class)->group(function () {
     Route::get('register', 'register')->name('register');
@@ -49,4 +39,4 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::redirect('show', '/register');
-
+  
