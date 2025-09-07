@@ -5,60 +5,21 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LikeManagement\StoreLikeRequest;
 use App\Http\Requests\LikeManagement\UpdateLikeRequest;
 use App\Models\Like;
+use App\Models\Post;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 
 class LikeController extends Controller
 {
-
-    public function index()
+    public function toggleLike(Post $post): RedirectResponse
     {
-        //
-    }
+        $user = auth()->user();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreLikeRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Like $like)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Like $like)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateLikeRequest $request, Like $like)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Like $like)
-    {
-        //
+        if ($post->isLikedBy($user)) {
+            $post->likes()->where('user_id', $user->id)->delete();
+        } else {
+            $post->likes()->create(['user_id' => $user->id]);
+        }
+        return back();
     }
 }

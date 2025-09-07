@@ -15,14 +15,14 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center
                             {{ $notification->read_at ? '' : 'list-group-item-warning' }}">
                                 <div class="flex-grow-1">
-                                    <strong>💬 New Comment on "{{ $notification->data['title'] ?? 'Unknown Post' }}
+                                    <strong>New Comment on "{{ $notification->data['title'] ?? 'Unknown Post' }}
                                         "</strong>
                                     <br>
-                                    <em>"{{ Str::limit($notification->data['comment_content'] ?? 'No content', 50) }}
+                                    <em>"{{ Str::limit($notification->data['comment_content'] ?? 'No content', 200) }}
                                         "</em>
                                     <br>
                                     <small class="text-muted">By {{ $notification->data['name'] ?? 'Unknown User' }}
-                                        • {{ $notification->created_at->diffForHumans() }}</small>
+                                        {{ $notification->created_at->diffForHumans() }}</small>
                                 </div>
                             </li>
                         @endforeach

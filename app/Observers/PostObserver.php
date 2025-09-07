@@ -15,18 +15,12 @@ class PostObserver
     {
         $post->description = Str::limit($post->description, 350);
         $post->save();
-
     }
 
     public function updating(Post $post): void
     {
     }
 
-//    public function updated(Post $post): void
-//    {
-//        $post->description = Str::limit($post->description, 350);
-//        $post->save();
-//    }
 
     public function saving(Post $post): void
     {

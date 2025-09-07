@@ -19,8 +19,8 @@ class PostController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Post::class);
-        $postsFromDB = Post::with('user_creator')->orderBy('views')->paginate(10);
-        return view('Posts.index', ['postsFromDB' => $postsFromDB]);
+        $posts = Post::with('user_creator')->orderBy('views')->paginate(10);
+        return view('Posts.index', compact('posts'));
     }
 
     public function show(Post $post)
@@ -67,35 +67,5 @@ class PostController extends Controller
         return to_route('posts.index');
     }
 
-    public function storeComment(Request $request, Post $post): RedirectResponse
-    {
-        $request->validate([
-            'content' => 'required|string|min:3|max:1000',
-        ]);
-
-        $comment = $post->comments()->create([
-            'content' => $request->input('content'),
-            'user_id' => Auth::id(),
-        ]);
-
-        if ($post->user_creator && $post->user_creator->id !== Auth::id()) {
-            $post->user_creator->notify(new CommentNotification($comment));
-        }
-
-        return redirect()->route('posts.show', $post->id)->with('success', 'Comment added successfully');
-    }
-
-    public function toggleLike(Post $post): RedirectResponse
-    {
-        $user = auth()->user();
-
-        if ($post->isLikedBy($user)) {
-            $post->likes()->where('user_id', $user->id)->delete();
-        } else {
-            $post->likes()->create(['user_id' => $user->id]);
-        }
-
-        return back();
-    }
 
 }

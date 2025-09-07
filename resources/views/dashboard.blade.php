@@ -20,7 +20,7 @@
                 Blog
             </a>
 
-            <span class="text-white font-medium">👋 {{ auth()->user()->name }}</span>
+            <span class="text-white font-medium"> {{ auth()->user()->name }}</span>
 
             <form method="POST" action="{{ route('logout') }}" class="inline">
                 @csrf
@@ -35,19 +35,14 @@
 
 <div class="container mx-auto px-4 mt-10">
     <div class="bg-white shadow-lg rounded-xl p-6 max-w-xl mx-auto text-center">
-        <div class="flex justify-center mb-4">
-            <div
-                class="w-16 h-16 bg-indigo-100 text-indigo-600 flex items-center justify-center rounded-full text-3xl shadow">
-                👤
-            </div>
-        </div>
         <h3 class="text-lg text-gray-700">
             Hi <b class="text-indigo-700">{{ auth()->user()->name }}</b>,
             your account was created successfully!
             <br>
             Check your Email: <b class="text-indigo-700">{{ auth()->user()->email }}</b>
             <br>
-            You have <b class="text-purple-700">{{ auth()->user()->posts->count() }}</b> blog(s) 🎉
+            You have <b class="text-purple-700">{{ $count_posts }}</b> blogs <br>
+            You have <b class="text-purple-700">{{ $count_comments }}</b> comments
         </h3>
     </div>
 </div>

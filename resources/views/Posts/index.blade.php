@@ -30,7 +30,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                @forelse($postsFromDB as $post)
+                @forelse($posts as $post)
                     <tr>
                         <td class="text-center">{{ $post->id }}</td>
                         <td>{{ $post->title }}</td>
@@ -39,7 +39,7 @@
                         </td>
                         <td class="text-center">{{ $post->created_at->format('Y-m-d h:i') }}</td>
                         <td class="text-center">
-                            <a class="btn btn-info btn-sm" href="{{ route('posts.show', $post->id) }}">👁 View</a>
+                            <a class="btn btn-info btn-sm" href="{{ route('posts.show', $post->id) }}">View</a>
                             <a class="btn btn-primary btn-sm" href="{{ route('posts.edit', $post->id) }}">Edit</a>
 
                             <form method="POST" action="{{ route('posts.destroy', $post->id) }}" class="d-inline">
