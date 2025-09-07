@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use Illuminate\Support\Facades\Mail;
+use App\Http\Requests\AuthManagement\AuthLoginRequest;
+use App\Http\Requests\AuthManagement\AuthRegisterRequest;
 use App\Mail\WelcomeMail;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -17,29 +16,19 @@ class AuthController extends Controller
         return view('Auth.register');
     }
 
-    public function registerPost(Request $request)
+    public function registerPost(AuthRegisterRequest $request)
     {
-
-        $request->validate([
-            'name' => 'required|string|max:255|min:3',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
-        ]);
-
+        $data = $request->validated();
+        $user = User::create($data);
         Mail::to($request->email)->send(new WelcomeMail($user));
         return redirect()->route('login')->with('success', 'User registered successfully');
     }
 
     public function dashboard(Request $request)
     {
-        return view('dashboard');
+        $count_posts = auth()->user()->posts()->count();
+        $count_comments = auth()->user()->comments()->count();
+        return view('dashboard', ['count_posts' => $count_posts, 'count_comments' => $count_comments]);
     }
 
     public function logout(Request $request)
@@ -47,7 +36,7 @@ class AuthController extends Controller
         auth()->guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login')->with('success', 'Logged out successfully');
+        return to_route('posts.index')->with('success', 'You have been logged out');
     }
 
     public function login(Request $request)
@@ -55,13 +44,9 @@ class AuthController extends Controller
         return view('Auth.login');
     }
 
-    public function loginPost(Request $request)
+    public function loginPost(AuthLoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string|min:6',
-        ]);
-
+        $request->validated();
         if (auth()->attempt($request->only('email', 'password'))) {
             return redirect()->route('posts.index')->with('success', 'Logged in successfully');
         }
