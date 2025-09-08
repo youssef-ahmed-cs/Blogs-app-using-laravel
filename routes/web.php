@@ -48,5 +48,4 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('notifications.index');
 });
 
-Route::redirect('show', '/register');
 

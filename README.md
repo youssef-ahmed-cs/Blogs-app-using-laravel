@@ -1,6 +1,6 @@
 # Blogs App using Laravel
 
-A modern, full-featured blogging platform built with Laravel. This project is ideal for learning Laravel, demonstrating best practices for CRUD applications, and serving as a foundation for personal or educational blogging sites.
+
 
 ## ✨ Features
 
@@ -77,6 +77,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 **Tips:**
+
 - For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833) if you have 2FA enabled.
 - After editing `.env`, run:
   ```bash
@@ -87,55 +88,3 @@ MAIL_FROM_NAME="${APP_NAME}"
 ## 🗺️ Routes Catalog
 
 ### Web Routes
-
-| Route                             | Method     | Description                       | Auth Required |
-|------------------------------------|------------|-----------------------------------|:-------------:|
-| `/`                               | GET        | Welcome page                      |      No       |
-| `/register`                       | GET, POST  | User registration                 |      No       |
-| `/login`                          | GET, POST  | User login                        |      No       |
-| `/dashboard`                      | GET        | User dashboard                    |     Yes       |
-| `/logout`                         | POST       | User logout                       |     Yes       |
-| `/posts`                          | GET        | List posts                        |     Yes       |
-| `/posts/create`                   | GET        | Create post form                  |     Yes       |
-| `/posts`                          | POST       | Store new post                    |     Yes       |
-| `/posts/{post}`                   | GET        | Show single post                  |     Yes       |
-| `/posts/{post}/edit`              | GET        | Edit post form                    |     Yes       |
-| `/posts/{post}`                   | PUT        | Update post                       |     Yes       |
-| `/posts/{post}`                   | DELETE     | Delete post                       |     Yes       |
-| `/posts/{post}/comments`          | POST       | Add comment to post               |     Yes       |
-| `/posts/comments/{comment}`       | DELETE     | Delete comment                    |     Yes       |
-| `/posts/{post}/like`              | POST       | Like/unlike post                  |     Yes       |
-| `/notifications`                  | GET        | View notifications                |     Yes       |
-| `/show`                           | GET        | Redirects to `/register`          |      No       |
-
-### API Routes
-
-| Route             | Method | Description             | Auth Required |
-|-------------------|--------|-------------------------|:-------------:|
-| `/api/register`   | POST   | Register user           |      No       |
-| `/api/login`      | POST   | Login user              |      No       |
-| `/api/logout`     | POST   | Logout user             |     Yes       |
-| `/api/user`       | GET    | Get authenticated user  |     Yes       |
-
-### Console Route
-
-| Command               | Description                      | Auth Required |
-|-----------------------|----------------------------------|:-------------:|
-| `php artisan inspire` | Displays an inspiring quote      |      No       |
-
-> **Note:**  
-> All post, comment, like, notification, dashboard, and logout operations require authentication.
-
-## 🤝 Contributing
-
-- Fork the repo and create your branch.
-- Make your changes and open a pull request.
-- For bugs, improvements, or ideas, please open an issue.
-
-## 📄 License
-
-This project is open-sourced under the [MIT license](https://opensource.org/licenses/MIT).
-
-## 👤 Author
-
-Made with ❤️ by [Youssef Ahmed](https://github.com/youssef-ahmed-cs)

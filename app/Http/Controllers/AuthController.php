@@ -20,15 +20,16 @@ class AuthController extends Controller
     {
         $data = $request->validated();
         $user = User::create($data);
-        Mail::to($request->email)->send(new WelcomeMail($user));
-        return redirect()->route('login')->with('success', 'User registered successfully');
+        //Mail::to($request->email)->send(new WelcomeMail($user));
+        return to_route('login');
     }
 
     public function dashboard(Request $request)
     {
+        $count_likes = auth()->user()->likes()->count();
         $count_posts = auth()->user()->posts()->count();
         $count_comments = auth()->user()->comments()->count();
-        return view('dashboard', ['count_posts' => $count_posts, 'count_comments' => $count_comments]);
+        return view('dashboard', ['count_posts' => $count_posts, 'count_comments' => $count_comments, 'count_likes' => $count_likes]);
     }
 
     public function logout(Request $request)
