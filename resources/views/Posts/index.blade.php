@@ -5,17 +5,19 @@
 @endsection
 
 @section('content')
-    <div class="d-flex justify-content-center gap-2 mb-4">
-        <a href="{{ route('posts.create') }}" class="btn btn-success">
-            Create Post
-        </a>
-        <a href="{{ route('dashboard') }}" class="btn btn-secondary">
-            Go to Dashboard
-        </a>
-        <a href="{{ route('notifications.index') }}" class="btn btn-secondary">
-            Go to Notification
-        </a>
-    </div>
+    @auth
+        <div class="d-flex justify-content-center gap-2 mb-4">
+            <a href="{{ route('posts.create') }}" class="btn btn-success">
+                Create Post
+            </a>
+            <a href="{{ route('dashboard') }}" class="btn btn-secondary">
+                Go to Dashboard
+            </a>
+            <a href="{{ route('notifications.index') }}" class="btn btn-secondary">
+                Go to Notification
+            </a>
+        </div>
+    @endauth
 
     <div class="card shadow-sm">
         <div class="card-header bg-light">
