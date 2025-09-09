@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Notification;
 class PostController extends Controller
 {
     use AuthorizesRequests;
+
     public function index()
     {
         $this->authorize('viewAny', Post::class);
@@ -40,9 +41,18 @@ class PostController extends Controller
     public function store(StorePostRequest $request): RedirectResponse
     {
         $this->authorize('create', Post::class);
-        Post::create($request->validated());
+        $data = $request->validated();
+        if ($request->hasFile('image')) {
+            $user = auth()->user();
+            $originalName = $request->file('image')->getClientOriginalName();
+            $filename = $user->name . '_' . $user->id . '_' . time() . '_' . $originalName;
+            $path = $request->file('image')->storeAs('images', $filename, 'public');
+            $data['image'] = $path;
+        }
+        Post::create($data);
         return to_route('posts.index');
     }
+
 
     public function edit(Post $post)
     {
@@ -56,6 +66,15 @@ class PostController extends Controller
         $this->authorize('update', Post::find($id));
         $data = $request->validated();
         $singlePost = Post::findOrFail($id);
+
+        if ($request->hasFile('image')) {
+            $user = auth()->user();
+            $originalName = $request->file('image')->getClientOriginalName();
+            $filename = $user->name . '_' . $user->id . '_' . time() . '_' . $originalName;
+            $path = $request->file('image')->storeAs('images', $filename, 'public');
+            $data['image'] = $path;
+        }
+
         $singlePost->update($data);
         return to_route('posts.show', $id);
     }
@@ -66,6 +85,4 @@ class PostController extends Controller
         $post->delete();
         return to_route('posts.index');
     }
-
-
 }

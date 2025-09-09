@@ -31,7 +31,7 @@
         </div>
 
         <div class="row">
-            <div class="col-md-7">
+            <div class="col-12">
                 <div class="card mb-4 shadow-sm">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">Post Info</h5>
@@ -39,35 +39,57 @@
                     <div class="card-body">
                         <h4 class="card-title">{{ $posts->title }}</h4>
                         <p class="card-text">{{ $posts->description }}</p>
-                        <p class="text-muted mb-2">👁 Views: {{ $posts->views }}</p>
-                        <form action="{{ route('posts.toggleLike', $posts->id) }}" method="POST" class="mt-2">
-                            @csrf
-                            <button type="submit"
-                                    class="btn btn-sm {{ $posts->isLikedBy(auth()->user()) ? 'btn-danger' : 'btn-outline-primary' }}">
-                                {{ $posts->isLikedBy(auth()->user()) ? 'Unlike' : 'Like' }}
-                            </button>
-                            <span class="ms-2">{{ $posts->likes()->count() }}  Likes</span>
-                        </form>
+
+                        {{-- Improved image handling --}}
+                        @php
+                            $imagePath = $posts->image ?? $posts->image_path ?? null;
+                        @endphp
+
+                        @if($imagePath)
+                            <div class="mb-3">
+                                <img
+                                    src="{{ asset('storage/' . $imagePath) }}"
+                                    alt="{{ $posts->title }} image"
+                                    class="img-fluid rounded border"
+                                    style="max-height: 400px; object-fit: cover; width: 100%;"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <div class="alert alert-warning" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i> Image could not be loaded
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <p class="text-muted mb-2">Views: {{ $posts->views }}</p>
+                                <form action="{{ route('posts.toggleLike', $posts->id) }}" method="POST" class="mt-2">
+                                    @csrf
+                                    <button type="submit"
+                                            class="btn btn-sm {{ $posts->isLikedBy(auth()->user()) ? 'btn-danger' : 'btn-outline-primary' }}">
+                                        {{ $posts->isLikedBy(auth()->user()) ? 'Unlike' : 'Like' }}
+                                    </button>
+                                    <span class="ms-2">{{ $posts->likes()->count() }} Likes</span>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border-start ps-3">
+                                    <h6 class="text-muted mb-2">Created by:</h6>
+                                    <p class="mb-1"><b>{{ $posts->user_creator->name ?? 'NOT FOUND' }}</b></p>
+                                    <p class="mb-1 text-muted">{{ $posts->user_creator->email ?? 'NOT FOUND' }}</p>
+                                    <p class="mb-0 text-muted small">{{ $posts->created_at->format('Y-m-d H:i') }}</p>
+                                </div>
+                            </div>
+                        </div>
+
                         @if($posts->likes()->count())
-                            <div class="mt-2">
+                            <div class="mt-3 pt-3 border-top">
                                 <span class="fw-bold">Liked by:</span>
                                 @foreach($posts->likes as $like)
-                                    <span class="badge bg-info text-dark">{{ $like->user->name ?? 'Unknown' }}</span>
+                                    <span
+                                        class="badge bg-info text-dark me-1">{{ $like->user->name ?? 'Unknown' }}</span>
                                 @endforeach
                             </div>
                         @endif
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-5">
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0">Post Creator Info</h6>
-                    </div>
-                    <div class="card-body">
-                        <p><b>Name:</b> {{ $posts->user_creator->name ?? 'NOT FOUND' }}</p>
-                        <p><b>Email:</b> {{ $posts->user_creator->email ?? 'NOT FOUND' }}</p>
-                        <p><b>Created At:</b> {{ $posts->created_at->format('Y-m-d H:i') }}</p>
                     </div>
                 </div>
             </div>
