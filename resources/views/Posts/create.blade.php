@@ -1,52 +1,73 @@
 @extends('layouts.app')
 
-@section('title')
-    Create Blog.
-@endsection
+@section('title', 'Create Blog')
+
 @section('content')
+    <div class="container py-5" style="max-width: 800px;">
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <div class="container">
-        <div class="card mt-4">
-            <div class="card-header">
-                <b><b>Create New Post</b></b>
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">✍️ Create New Post</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('posts.store') }}">
+                <form method="POST" action="{{ route('posts.store') }}" enctype="multipart/form-data">
                     @csrf
+
                     <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" value="{{old('title')}}" >
+                        <label for="title" class="form-label fw-bold">Title</label>
+                        <input type="text"
+                               class="form-control @error('title') is-invalid @enderror"
+                               id="title"
+                               name="title"
+                               value="{{ old('title') }}"
+                               placeholder="Enter post title">
+                        @error('title')
+                        <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
+
                     <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" >
-                            {{old('description')}}
-                        </textarea>
+                        <label for="description" class="form-label fw-bold">Description</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror"
+                                  id="description"
+                                  name="description"
+                                  rows="4"
+                                  placeholder="Write your post content here...">{{ old('description') }}</textarea>
+                        @error('description')
+                        <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
+
                     <div class="mb-3">
-                        <label for="user_id" class="form-label">Post Creator</label>
-                        <select name="user_id" id="user_id" class="form-select">
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label for="image" class="form-label fw-bold">Upload Image</label>
+                        <input type="file"
+                               class="form-control @error('image') is-invalid @enderror"
+                               id="image"
+                               name="image">
+                        @error('image')
+                        <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
-                    <button type="submit" class="btn btn-primary">Create Post</button>
+
+                    <input type="hidden" name="user_id" value="{{ auth()->id() }}">
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">
+                            ✅ Create Post
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
-
+    </div>
 @endsection

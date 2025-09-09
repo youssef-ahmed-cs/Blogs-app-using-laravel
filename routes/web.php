@@ -44,8 +44,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('posts/{post}/like', 'toggleLike')->name('posts.toggleLike');
     });
 
-    Route::get('notifications', [CommentNotificationController::class, 'index'])
+    Route::get('/notifications', [CommentNotificationController::class, 'index'])
         ->name('notifications.index');
+
+    Route::patch('/notifications/{id}/read', [CommentNotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
+
+    Route::patch('/notifications/read-all', [CommentNotificationController::class, 'markAllAsRead'])
+        ->name('notifications.readAll');
 });
 
 

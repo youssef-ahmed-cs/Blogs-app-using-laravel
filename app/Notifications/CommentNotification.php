@@ -31,6 +31,8 @@ class CommentNotification extends Notification implements ShouldQueue
             'title' => $this->comment->post?->title,
             'message' => $this->comment->user?->name . ' commented on your post: ' . $this->comment->post?->title,
             'created_at' => $this->comment->created_at,
+            'post_id' => $this->comment->post?->id,
+            'user_id' => $this->comment->user?->id,
         ];
     }
 

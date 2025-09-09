@@ -1,6 +1,4 @@
-<?php
-
-namespace App\Http\Controllers;
+<?php namespace App\Http\Controllers;
 
 use App\Http\Requests\PostManagement\StorePostRequest;
 use App\Http\Requests\PostManagement\UpdatePostRequest;
@@ -16,6 +14,7 @@ use Illuminate\Support\Facades\Notification;
 class PostController extends Controller
 {
     use AuthorizesRequests;
+
     public function index()
     {
         $this->authorize('viewAny', Post::class);
@@ -26,7 +25,11 @@ class PostController extends Controller
     public function show(Post $post)
     {
         $this->authorize('view', $post);
-        $post->increment('views');
+        $postKey = 'viewed_post_' . $post->id;
+        if (!session()->has($postKey)) {
+            $post->increment('views');
+            session()->put($postKey, true);
+        }
         $posts = Post::with(['comments.user', 'likes.user'])->find($post->id);
         return view('Posts.show', ['posts' => $posts]);
     }
@@ -40,9 +43,18 @@ class PostController extends Controller
     public function store(StorePostRequest $request): RedirectResponse
     {
         $this->authorize('create', Post::class);
-        Post::create($request->validated());
+        $data = $request->validated();
+        if ($request->hasFile('image')) {
+            $user = auth()->user();
+            $originalName = $request->file('image')->getClientOriginalName();
+            $filename = $user->name . '_' . $user->id . '_' . time() . '_' . $originalName;
+            $path = $request->file('image')->storeAs('images', $filename, 'public');
+            $data['image'] = $path;
+        }
+        Post::create($data);
         return to_route('posts.index');
     }
+
 
     public function edit(Post $post)
     {
@@ -56,6 +68,15 @@ class PostController extends Controller
         $this->authorize('update', Post::find($id));
         $data = $request->validated();
         $singlePost = Post::findOrFail($id);
+
+//        if ($request->hasFile('image')) {
+//            $user = auth()->user();
+//            $originalName = $request->file('image')->getClientOriginalName();
+//            $filename = $user->name . '_' . $user->id . '_' . time() . '_' . $originalName;
+//            $path = $request->file('image')->storeAs('images', $filename, 'public');
+//            $data['image'] = $path;
+//        }
+
         $singlePost->update($data);
         return to_route('posts.show', $id);
     }
@@ -66,6 +87,4 @@ class PostController extends Controller
         $post->delete();
         return to_route('posts.index');
     }
-
-
 }

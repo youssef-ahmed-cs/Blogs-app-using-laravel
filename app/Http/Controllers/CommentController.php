@@ -36,6 +36,8 @@ class CommentController extends Controller
         $comment = $post->comments()->create([
             'content' => $request->input('content'),
             'user_id' => auth()->user()->id,
+            'parent_id' => $request->input('parent_id'),
+            'post_id' => $post->id,
         ]);
 
         if ($post->user_creator && $post->user_creator->id !== Auth::id()) {  // notify user creator{

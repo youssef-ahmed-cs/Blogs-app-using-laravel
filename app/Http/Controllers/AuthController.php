@@ -20,7 +20,7 @@ class AuthController extends Controller
     {
         $data = $request->validated();
         $user = User::create($data);
-        //Mail::to($request->email)->send(new WelcomeMail($user));
+        Mail::to($request->email)->send(new WelcomeMail($user));
         return to_route('login');
     }
 
