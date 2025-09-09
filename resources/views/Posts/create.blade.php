@@ -22,31 +22,24 @@
                 <b><b>Create New Post</b></b>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('posts.store') }}">
+                <form method="POST" action="{{ route('posts.store') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" value="{{old('title')}}" >
+                        <input type="text" class="form-control" id="title" name="title" value="{{ old('title') }}">
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" >
-                            {{old('description')}}
-                        </textarea>
+                        <textarea class="form-control" id="description" name="description"
+                                  rows="3">{{ old('description') }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="user_id" class="form-label">Post Creator</label>
-                        <select name="user_id" id="user_id" class="form-select">
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label for="image" class="form-label">Post Image</label>
+                        <input type="file" class="form-control" id="image" name="image">
                     </div>
+                    <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                     <button type="submit" class="btn btn-primary">Create Post</button>
                 </form>
             </div>
         </div>
-
 @endsection

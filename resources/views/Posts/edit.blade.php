@@ -35,13 +35,7 @@
                                   required>{{$post['description']}}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="post_creator" class="form-label">Post Creator</label>
-                        <select name="post_creator" id="post_creator" class="form-select">
-                            @foreach($users as $user)
-                                <option
-                                    @selected($post->user_id === $user->id) value="{{$user->id}}">{{$user->name}}</option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                     </div>
                     <button type="submit" class="btn btn-info">Update Post</button>
                 </form>

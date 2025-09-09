@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard User</title>
+    <title>{{ auth()->user()->name }}'s Dashboard</title>
     @vite('resources/css/app.css')
 </head>
 <body class="bg-gray-100">
 
 <nav class="bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md sticky top-0 z-50">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div class="text-2xl font-bold text-white">
-            {{auth()->user()->name}}
-        </div>
+        <a href="{{ route('dashboard') }}" class="text-2xl font-bold text-white">
+            Dashboard
+        </a>
 
         <div class="flex items-center space-x-4">
             <a href="{{ route('posts.index') }}"
@@ -34,17 +34,43 @@
 </nav>
 
 <div class="container mx-auto px-4 mt-10">
-    <div class="bg-white shadow-lg rounded-xl p-6 max-w-xl mx-auto text-center">
-        <h3 class="text-lg text-gray-700">
-            Hi <b class="text-indigo-700">{{ auth()->user()->name }}</b>,
-            your account was created successfully!
-            <br>
-            Check your Email: <b class="text-indigo-700">{{ auth()->user()->email }}</b>
-            <br>
-            You have <b class="text-purple-700">{{ $count_posts }}</b> blogs <br>
-            You have <b class="text-purple-700">{{ $count_comments }}</b> comments
-            You have <b class="text-purple-700">{{ $count_comments }}</b> likes
-        </h3>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <div class="bg-white shadow-lg rounded-xl p-6 text-center">
+            <h2 class="text-2xl font-semibold text-gray-800">
+                Welcome, <span class="text-indigo-600">{{ auth()->user()->name }}</span>!
+            </h2>
+            <p class="text-gray-600 mt-2">
+                Your account is ready. Check your email at <strong
+                    class="text-indigo-600">{{ auth()->user()->email }}</strong>.
+            </p>
+            <div class="mt-6 border-t pt-4">
+                <h3 class="text-xl font-medium text-gray-700 mb-3">Your Stats</h3>
+                <p class="text-gray-600">
+                    You have <strong class="text-purple-700">{{ $count_posts ?? 0 }}</strong> blogs,
+                    <strong class="text-purple-700">{{ $count_comments ?? 0 }}</strong> comments, and
+                    <strong class="text-purple-700">{{ $count_likes ?? 0 }}</strong> likes.
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-lg rounded-xl p-6">
+            <h3 class="text-xl font-medium text-gray-700 mb-4 text-center">Quick Actions</h3>
+            <div class="space-y-3">
+                <a href="{{ route('posts.create') }}"
+                   class="block bg-indigo-500 text-white font-medium py-2 px-4 rounded-md hover:bg-indigo-600 transition duration-200 text-center">
+                    Create New Post
+                </a>
+                <a href="{{ route('notifications.index') }}"
+                   class="block bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md hover:bg-gray-300 transition duration-200 text-center">
+                    Manage Notifications
+                </a>
+                <a href="#"
+                   class="block bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md hover:bg-gray-300 transition duration-200 text-center">
+                    View Your Profile
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
