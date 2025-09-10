@@ -14,7 +14,7 @@
 
         <!-- Brand -->
         <a class="navbar-brand fw-bold" href="{{route('posts.index')}}">
-            <b>{{auth()->user()->name}}</b> Blogs
+            <b>FaceBog</b>
         </a>
 
         <!-- Search -->
@@ -24,13 +24,21 @@
 
         <!-- Right side -->
         <ul class="navbar-nav d-flex align-items-center">
-            <!-- Notifications -->
-            <li class="nav-item me-3">
-                <a class="nav-link position-relative" href="{{ route('notifications.index') }}">
-                    <i class="bi bi-bell fs-5"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"></span>
-                </a>
-            </li>
+<!-- Notifications -->
+@php
+    $unreadCount = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0;
+@endphp
+
+<li class="nav-item me-3">
+    <a class="nav-link position-relative" href="{{ route('notifications.index') }}">
+        <i class="bi bi-bell fs-5"></i>
+        @if($unreadCount > 0)
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ $unreadCount }}
+            </span>
+        @endif
+    </a>
+</li>
 
             <!-- Profile Dropdown -->
             <li class="nav-item dropdown">
@@ -68,3 +76,36 @@
 {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
 </body>
 </html>
+
+<script>
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.like-btn')) {
+        e.preventDefault();
+
+        const btn = e.target.closest('.like-btn');
+        const postId = btn.dataset.postId;
+        const likeCountSpan = btn.querySelector('.like-count');
+        const icon = btn.querySelector('i');
+
+        fetch(`/posts/${postId}/toggle-like`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'liked') {
+                btn.classList.add('text-danger');
+                icon.classList.replace('bi-heart', 'bi-heart-fill');
+            } else {
+                btn.classList.remove('text-danger');
+                icon.classList.replace('bi-heart-fill', 'bi-heart');
+            }
+            likeCountSpan.textContent = data.likesCount;
+        })
+        .catch(err => console.error(err));
+    }
+});
+</script>

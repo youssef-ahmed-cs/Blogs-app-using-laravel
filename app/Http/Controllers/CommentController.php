@@ -30,25 +30,57 @@ class CommentController extends Controller
         return back()->with('success', 'Comment updated successfully');
     }
 
-    public function store(StoreCommentRequest $request, Post $post): RedirectResponse
+public function toggleLike(Post $post)
+{
+    $user = auth()->user();
+
+    if ($post->likes()->where('user_id', $user->id)->exists()) {
+        $post->likes()->where('user_id', $user->id)->delete();
+        $status = 'unliked';
+    } else {
+        $post->likes()->create(['user_id' => $user->id]);
+        $status = 'liked';
+
+        // إرسال notification عند Like
+        if($post->user_id !== $user->id){
+            $post->user->notify(new CommentNotification($user, $post, null, 'like'));
+        }
+    }
+
+    return response()->json([
+        'status' => $status,
+        'likesCount' => $post->likes()->count(),
+    ]);
+}
+
+    public function store(Request $request, $postId)
     {
-        $request->validated();
-        $comment = $post->comments()->create([
-            'content' => $request->input('content'),
-            'user_id' => auth()->user()->id,
+        $request->validate([
+            'content' => 'required|string|max:1000',
         ]);
 
-        if ($post->user_creator && $post->user_creator->id !== Auth::id()) {  // notify user creator{
-            $post->user_creator->notify(new CommentNotification($comment));
+        $post = Post::findOrFail($postId);
+
+        $comment = new Comment();
+        $comment->content = $request->content;
+        $comment->user_id = auth()->id();
+        $comment->post_id = $post->id;
+        $comment->save();
+
+        return redirect()->back()->with('success', 'تم إضافة التعليق بنجاح ✅');
+    }
+
+    public function destroy($id)
+    {
+        $comment = Comment::findOrFail($id);
+
+        if ($comment->user_id !== auth()->id()) {
+            abort(403, 'غير مسموح لك بحذف هذا التعليق');
         }
 
-        return to_route('posts.show', $post->id)->with('success', 'Comment created successfully');
+        $comment->delete();
+
+        return redirect()->back()->with('success', 'تم حذف التعليق ❌');
     }
 
-    public function destroy(Comment $comment): RedirectResponse
-    {
-        $this->authorize('delete', $comment);
-        $comment->delete();
-        return back()->with('success', 'Comment deleted successfully');
-    }
 }

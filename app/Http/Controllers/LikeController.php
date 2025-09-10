@@ -2,24 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LikeManagement\StoreLikeRequest;
-use App\Http\Requests\LikeManagement\UpdateLikeRequest;
-use App\Models\Like;
+use Illuminate\Http\Request;
 use App\Models\Post;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse;
+use App\Notifications\PostInteraction;
 
 class LikeController extends Controller
 {
-    public function toggleLike(Post $post): RedirectResponse
-    {
-        $user = auth()->user();
+public function toggleLike(Post $post)
+{
+    $user = auth()->user();
 
-        if ($post->isLikedBy($user)) {
-            $post->likes()->where('user_id', $user->id)->delete();
-        } else {
-            $post->likes()->create(['user_id' => $user->id]);
+    if ($post->likes()->where('user_id', $user->id)->exists()) {
+        $post->likes()->where('user_id', $user->id)->delete();
+        $status = 'unliked';
+    } else {
+        $post->likes()->create(['user_id' => $user->id]);
+        $status = 'liked';
+
+        // إرسال Notification للكاتب
+        if ($post->user_id !== $user->id) {
+            $post->user->notify(new PostInteraction($user, $post, 'like'));
         }
-        return back();
     }
+
+    return response()->json([
+        'status' => $status,
+        'likesCount' => $post->likes()->count(),
+    ]);
+}
+
+
 }

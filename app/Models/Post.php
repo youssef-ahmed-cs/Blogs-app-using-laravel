@@ -16,7 +16,7 @@ class Post extends Model
     use HasFactory, Notifiable;
 
     protected $fillable = ['title', 'description', 'user_id',
-        'content', 'image', 'views'
+        'content', 'image', 'views', 'image_post',
     ];
 
     public function user_creator(): BelongsTo
@@ -24,23 +24,31 @@ class Post extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function comments(): HasMany
-    {
-        return $this->hasMany(Comment::class);
-    }
 
-    public function likes(): HasMany
-    {
-        return $this->hasMany(Like::class);
-    }
+    // app/Models/Post.php
+public function user(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
 
-    public function isLikedBy(?User $user): bool
-    {
-        if (!$user) {
-            return false;
-        }
-        return $this->likes()->where('user_id', $user->id)->exists();
-    }
+
+public function likes()
+{
+    return $this->hasMany(Like::class);
+}
+
+public function comments()
+{
+    return $this->hasMany(Comment::class);
+}
+
+public function isLikedBy($user)
+{
+    return $this->likes()->where('user_id', $user->id)->exists();
+}
+
+
+
 }
 
 

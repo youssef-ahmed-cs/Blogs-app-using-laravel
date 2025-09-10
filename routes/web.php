@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentNotificationController;
 use App\Http\Controllers\LikeController;
@@ -27,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', 'logout')->name('logout');
         Route::get('dashboard', 'dashboard')->name('dashboard');
     });
+});
 
     Route::prefix('posts')->controller(PostController::class)->group(function () {
         Route::get('/', 'index')->name('posts.index');
@@ -47,9 +49,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('posts/{post}/like', 'toggleLike')->name('posts.toggleLike');
     });
 
-    Route::get('notifications', [CommentNotificationController::class, 'index'])
-        ->name('notifications.index');
-});
 
 
 Route::middleware('auth')->group(function () {
@@ -71,3 +70,44 @@ Route::put('/profile', [ProfileController::class, 'update'])->name('profile.upda
 Route::get('/profile/{id}', [ProfileController::class, 'public'])->name('profile.public');
 
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+
+
+Route::post('/posts/{post}/toggle-like', [PostController::class, 'toggleLike'])->name('posts.toggle-like');
+
+
+Route::resource('posts', PostController::class);
+
+// لايك
+Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
+
+// كومنت
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+
+Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
+Route::post('/posts/{post}/toggle-like', [PostController::class, 'toggleLike'])->name('posts.toggle-like');
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+Route::post('/posts/{post}/toggle-like', [PostController::class, 'toggleLike'])->name('posts.toggle-like');
+Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+
+Route::get('/notifications', [NotificationController::class, 'index']);
+Route::post('/notifications', [NotificationController::class, 'store']);
+Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+
+
+
+
+// routes/web.php
+
+Route::post('/notifications', [NotificationController::class, 'store'])
+    ->name('notifications.store')
+    ->middleware('auth'); // مهم
+
+Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
+    ->name('notifications.destroy')
+    ->middleware('auth'); // مهم
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+});

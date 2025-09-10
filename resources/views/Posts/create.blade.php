@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('Layouts.app')
 
 @section('title')
     Create Blog.
@@ -34,8 +34,8 @@
                                   rows="3">{{ old('description') }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="image" class="form-label">Post Image</label>
-                        <input type="file" class="form-control" id="image" name="image">
+                        <label for="image_post" class="form-label">Post Image</label>
+                        <input type="file" name="image_post" class="form-control">
                     </div>
                     <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                     <button type="submit" class="btn btn-primary">Create Post</button>
