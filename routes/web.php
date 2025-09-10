@@ -5,7 +5,10 @@ use App\Http\Controllers\CommentNotificationController;
 use App\Http\Controllers\LikeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SettingsController;
+
 
 Route::get('/', static function () {
     return view('welcome');
@@ -48,4 +51,20 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('notifications.index');
 });
 
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
+    Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.updatePassword');
+    Route::delete('/settings/delete', [SettingsController::class, 'destroy'])->name('settings.destroy');
+});
+
+
+
+Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
