@@ -22,6 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'profile_image',
+        'bio',   
     ];
 
     /**
@@ -47,10 +50,11 @@ class User extends Authenticatable
         ];
     }
 
-    public function posts(): HasMany
-    {
-        return $this->hasMany(Post::class);
-    }
+public function posts(): HasMany
+{
+    return $this->hasMany(Post::class);
+}
+
 
     public function comments(): HasMany
     {
@@ -61,4 +65,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Like::class);
     }
+
+public function profile()
+{
+    return $this->hasOne(Profile::class);
 }
+
+}
+
