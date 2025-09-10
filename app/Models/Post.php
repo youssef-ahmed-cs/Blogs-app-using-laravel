@@ -16,7 +16,7 @@ class Post extends Model
     use HasFactory, Notifiable;
 
     protected $fillable = ['title', 'description', 'user_id',
-        'content'
+        'content', 'image', 'views'
     ];
 
     public function user_creator(): BelongsTo

@@ -1,20 +1,12 @@
 @extends('Layouts.app')
 
-@section('title')
-    Blogfiy
-@endsection
+@section('title', 'Blogging')
 
 @section('content')
     <div class="d-flex justify-content-center gap-2 mb-4">
-        <a href="{{ route('posts.create') }}" class="btn btn-success">
-            Create Post
-        </a>
-        <a href="{{ route('dashboard') }}" class="btn btn-secondary">
-            Go to Dashboard
-        </a>
-        <a href="{{ route('notifications.index') }}" class="btn btn-secondary">
-            Go to Notification
-        </a>
+        <a href="{{ route('posts.create') }}" class="btn btn-success">Create Post</a>
+        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Go to Dashboard</a>
+        <a href="{{ route('notifications.index') }}" class="btn btn-secondary">Go to Notification</a>
     </div>
 
     <div class="card shadow-sm">
@@ -25,11 +17,11 @@
             <table class="table table-bordered table-hover mb-0 align-middle">
                 <thead class="table-light text-center">
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Title</th>
-                    <th scope="col">Posted By</th>
-                    <th scope="col">Created At</th>
-                    <th scope="col">Actions</th>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Posted By</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -37,22 +29,21 @@
                     <tr>
                         <td class="text-center">{{ $post->id }}</td>
                         <td>{{ $post->title }}</td>
-                        <td class="text-center">
-                            {{ $post->user_creator->name ?? 'User Not Found' }}
-                        </td>
+                        <td class="text-center">{{ $post->user_creator->name ?? 'User Not Found' }}</td>
                         <td class="text-center">{{ $post->created_at->format('Y-m-d h:i') }}</td>
                         <td class="text-center">
                             <a class="btn btn-info btn-sm" href="{{ route('posts.show', $post->id) }}">View</a>
-                            <a class="btn btn-primary btn-sm" href="{{ route('posts.edit', $post->id) }}">Edit</a>
-
-                            <form method="POST" action="{{ route('posts.destroy', $post->id) }}" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure you want to delete this post?')">
-                                    Delete
-                                </button>
-                            </form>
+                            @if(auth()->id() === $post->user_id)
+                                <a class="btn btn-primary btn-sm" href="{{ route('posts.edit', $post->id) }}">Edit</a>
+                                <form method="POST" action="{{ route('posts.destroy', $post->id) }}" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Are you sure you want to delete this post?')">
+                                        Delete
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty
