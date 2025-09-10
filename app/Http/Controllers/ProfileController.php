@@ -52,5 +52,16 @@ public function update(Request $request)
 
     return redirect()->route('profile.show')->with('success', 'Profile updated successfully!');
 }
+public function public($id)
+{
+    $user = User::with('profile')->findOrFail($id);
+
+    $posts = $user->posts()->latest()->get();
+    $comments = $user->comments()->latest()->get();
+
+    return view('profile.public', compact('user', 'posts', 'comments'));
+}
+
+
 
 }
