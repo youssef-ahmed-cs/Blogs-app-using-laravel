@@ -19,121 +19,138 @@ class PostController extends Controller
 
     public function index()
     {
-        $posts = Post::with(['user.profile', 'likes', 'comments.user'])
-            ->withCount(['likes', 'comments'])
-            ->latest()
-            ->paginate(10);
-
-        return view('posts.index', compact('posts'));
+        $posts = Post::with(['user.profile', 'likes'])
+                    ->latest()
+                    ->paginate(10);
+        
+        return view('Posts.index', compact('posts'));
     }
 
     public function show(Post $post)
     {
-        // Allow everyone to view posts
-        $post->increment('views'); 
-
-        // Load comments and likes with users
-        $post->load(['comments.user.profile', 'likes.user']);
-
-        return view('posts.show', compact('post'));
+        // Load the post with relationships
+        $post->load(['user.profile', 'likes', 'comments.user.profile']);
+        
+        // Get related posts or recent posts for the feed
+        $posts = Post::with(['user.profile', 'likes'])
+                    ->where('id', '!=', $post->id)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+        
+        return view('Posts.show', compact('post', 'posts'));
     }
 
     public function create()
     {
-        // Only authenticated users can create posts
-        if (!auth()->check()) {
-            return redirect()->route('login')->with('info', 'Please login to create posts');
-        }
-        
-        return view('posts.create');
+        return view('Posts.create');
     }
 
-    public function store(Request $request)
-    {
-        // Only authenticated users can store posts
-        if (!auth()->check()) {
-            return response()->json(['error' => 'Authentication required'], 401);
-        }
+public function store(Request $request, Post $post)
+{
+    $request->validate([
+        'content' => 'required|string|max:500',
+        'parent_id' => 'nullable|exists:comments,id'
+    ]);
 
-        $request->validate([
-            'description' => 'required|string|max:1000',
-            'title' => 'nullable|string|max:255',
-            'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    $comment = $post->comments()->create([
+        'user_id' => auth()->id(),
+        'content' => $request->content,
+        'parent_id' => $request->parent_id,
+    ]);
+
+    // إذا كان طلب AJAX
+    if($request->ajax()){
+        return response()->json([
+            'status' => 'success',
+            'comment' => [
+                'id' => $comment->id,
+                'content' => $comment->content,
+                'user_name' => $comment->user->name,
+                'user_image' => $comment->user->profile?->profile_image
+                                 ? asset('storage/'.$comment->user->profile->profile_image)
+                                 : asset('images/default-avatar.png'),
+                'user_profile' => route('profile.public', $comment->user->id)
+            ]
         ]);
-
-        $post = new Post();
-        $post->user_id = auth()->id();
-        $post->title = $request->title;
-        $post->description = $request->description;
-
-        // Handle image upload
-        if ($request->hasFile('image_post')) {
-            $imagePath = $request->file('image_post')->store('posts', 'public');
-            $post->image_post = $imagePath;
-        }
-
-        $post->save();
-
-        return redirect()->route('home')->with('success', 'تم نشر البوست بنجاح 🎉');
     }
+
+    return redirect()->back();
+}
+
 
     public function edit(Post $post)
     {
         // Check if user owns the post
-        if (auth()->id() !== $post->user_id) {
-            abort(403, 'Unauthorized action.');
+        if ($post->user_id !== Auth::id()) {
+            abort(403);
         }
 
-        return view('posts.edit', compact('post'));
+        return view('Posts.edit', compact('post'));
     }
 
     public function update(Request $request, Post $post)
     {
         // Check if user owns the post
-        if (auth()->id() !== $post->user_id) {
-            abort(403, 'Unauthorized action.');
+        if ($post->user_id !== Auth::id()) {
+            abort(403);
         }
 
         $request->validate([
-            'description' => 'required|string|max:1000',
-            'title' => 'nullable|string|max:255',
-            'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'content' => 'required|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        $post->title = $request->title;
-        $post->description = $request->description;
+        $data = [
+            'content' => $request->content,
+        ];
 
-        // Handle image upload
-        if ($request->hasFile('image_post')) {
+        if ($request->hasFile('image')) {
             // Delete old image if exists
-            if ($post->image_post) {
-                Storage::disk('public')->delete($post->image_post);
+            if ($post->image) {
+                Storage::disk('public')->delete($post->image);
             }
-
-            $imagePath = $request->file('image_post')->store('posts', 'public');
-            $post->image_post = $imagePath;
+            $data['image'] = $request->file('image')->store('posts', 'public');
         }
 
-        $post->save();
+        $post->update($data);
 
-        return redirect()->route('posts.show', $post)->with('success', 'تم تحديث البوست بنجاح');
+        return redirect()->route('posts.show', $post)->with('success', 'Post updated successfully!');
     }
 
     public function destroy(Post $post)
     {
         // Check if user owns the post
-        if (auth()->id() !== $post->user_id) {
-            abort(403, 'Unauthorized action.');
+        if ($post->user_id !== Auth::id()) {
+            abort(403);
         }
 
         // Delete image if exists
-        if ($post->image_post) {
-            Storage::disk('public')->delete($post->image_post);
+        if ($post->image) {
+            Storage::disk('public')->delete($post->image);
         }
 
         $post->delete();
 
-        return redirect()->route('home')->with('success', 'تم حذف البوست بنجاح');
+        return redirect()->route('home')->with('success', 'Post deleted successfully!');
+    }
+
+    public function toggleLike(Post $post)
+    {
+        $user = Auth::user();
+        
+        if ($user->likes()->where('post_id', $post->id)->exists()) {
+            $user->likes()->detach($post->id);
+            $status = 'unliked';
+        } else {
+            $user->likes()->attach($post->id);
+            $status = 'liked';
+        }
+        
+        return response()->json([
+            'status' => $status,
+            'likesCount' => $post->likes()->count()
+        ]);
     }
 }
 

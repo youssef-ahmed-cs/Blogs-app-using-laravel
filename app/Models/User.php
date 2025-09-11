@@ -101,5 +101,6 @@ class User extends Authenticatable
     {
         return $this->following()->count();
     }
+    
 }
 
