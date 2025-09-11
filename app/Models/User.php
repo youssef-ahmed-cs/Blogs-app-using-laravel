@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable , HasApiTokens;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -50,40 +49,57 @@ class User extends Authenticatable
         ];
     }
 
+    // Existing relationships
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
 
-
-    public function comments(): HasMany
+    public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-    public function likes(): HasMany
+    public function likes()
     {
         return $this->hasMany(Like::class);
     }
 
-public function profile()
-{
-    return $this->hasOne(Profile::class);
-}
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
 
-public function posts()
-{
-    return $this->hasMany(Post::class);
-}
+    // New follow relationships
+    public function followers()
+    {
+        return $this->hasMany(Follow::class, 'following_id');
+    }
 
-public function followers()
-{
-    return $this->belongsToMany(User::class, 'follows', 'followed_id', 'follower_id');
-}
+    public function following()
+    {
+        return $this->hasMany(Follow::class, 'follower_id');
+    }
 
-public function followings()
-{
-    return $this->belongsToMany(User::class, 'follows', 'follower_id', 'followed_id');
-}
-public function isFollowing(User $user)
-{
-    return $this->followings()->where('followed_id', $user->id)->exists();
-}
+    // Helper methods
+    public function isFollowing($userId)
+    {
+        return $this->following()->where('following_id', $userId)->exists();
+    }
+
+    public function isFollowedBy($userId)
+    {
+        return $this->followers()->where('follower_id', $userId)->exists();
+    }
+
+    public function followersCount()
+    {
+        return $this->followers()->count();
+    }
+
+    public function followingCount()
+    {
+        return $this->following()->count();
+    }
 }
 

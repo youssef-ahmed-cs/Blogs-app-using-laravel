@@ -10,7 +10,7 @@
         border-radius: 0 0 14px 14px;
         overflow: hidden;
         min-height: 210px;
-        margin-bottom: 20px; /* Reduced margin since avatar is no longer overlapping */
+        margin-bottom: 20px;
     }
     .fb-cover-img {
         width: 100%;
@@ -49,7 +49,6 @@
         background: #f4f4f4;
     }
     
-    /* New profile section - separate from cover */
     .fb-profile-section {
         display: flex;
         align-items: flex-start;
@@ -60,7 +59,7 @@
     
     .fb-profile-avatar-container {
         position: relative;
-        flex-shrink: 0; /* Don't let avatar shrink */
+        flex-shrink: 0;
     }
     
     .fb-profile-avatar {
@@ -96,7 +95,7 @@
     
     .fb-profile-details {
         flex-grow: 1;
-        min-width: 0; /* Allow text to wrap */
+        min-width: 0;
     }
     
     .fb-profile-name {
@@ -139,7 +138,6 @@
         background: transparent;
     }
     
-    /* Responsive adjustments */
     @media (max-width: 768px) {
         .fb-profile-section {
             flex-direction: column;
@@ -173,7 +171,7 @@
         <!-- Cover Header -->
         <div class="fb-cover-container">
             <img class="fb-cover-img"
-                src="{{ $user->profile?->cover_image ? asset('storage/'.$user->profile->cover_image) : asset('images/cover-default.jpg') }}"
+                src="{{ $user->profile?->cover_image ? asset('storage/'.$user->profile->cover_image) : 'https://via.placeholder.com/800x210/6c757d/ffffff?text=Cover+Photo' }}"
                 alt="Cover">
             <div class="fb-cover-gradient"></div>
             <div class="fb-cover-action">
@@ -181,7 +179,7 @@
                     <form action="{{ route('profile.cover.upload', $user->id) }}" method="POST" enctype="multipart/form-data" class="d-inline">
                         @csrf
                         <label class="fb-btn-img" style="cursor:pointer;">
-                            <i class="bi bi-camera"></i> إضافة صورة غلاف
+                            <i class="bi bi-camera"></i> Add Cover Photo
                             <input type="file" name="cover_image" accept="image/*" onchange="this.form.submit()" style="display:none;">
                         </label>
                     </form>
@@ -189,12 +187,12 @@
             </div>
         </div>
 
-        <!-- Profile Section - Now separate from cover -->
+        <!-- Profile Section -->
         <div class="fb-profile-section">
             <!-- Profile Avatar -->
             <div class="fb-profile-avatar-container">
                 <img class="fb-profile-avatar"
-                    src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : asset('images/default-avatar.png') }}"
+                    src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : 'https://via.placeholder.com/130x130.png?text='.substr($user->name, 0, 1) }}"
                     alt="Profile">
                 @if(auth()->check() && auth()->id() === $user->id)
                     <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
@@ -210,40 +208,94 @@
             <!-- Profile Details -->
             <div class="fb-profile-details">
                 <div class="fb-profile-name">{{ $user->name }}</div>
-                <div class="fb-profile-username text-muted mb-3">{{ '@' . ($user->username ?? $user->name) }}</div>
+                <div class="fb-profile-username text-muted mb-3">{{ '@' . ($user->username ?? strtolower(str_replace(' ', '', $user->name))) }}</div>
                 
                 <div class="fb-profile-actions">
+                    <!-- Followers Button -->
                     <a href="#" data-bs-toggle="modal" data-bs-target="#followersModal" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-people"></i> Followers <span class="badge bg-primary">{{ isset($followers) ? count($followers) : 0 }}</span>
+                        <i class="bi bi-people"></i> Followers 
+                        <span class="badge bg-primary">{{ $followersCount ?? 0 }}</span>
                     </a>
+
+                    <!-- Following Button -->
                     <a href="#" data-bs-toggle="modal" data-bs-target="#followingsModal" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-person-lines-fill"></i> Following <span class="badge bg-secondary">{{ isset($followings) ? count($followings) : 0 }}</span>
+                        <i class="bi bi-person-lines-fill"></i> Following 
+                        <span class="badge bg-secondary">{{ $followingsCount ?? 0 }}</span>
                     </a>
                     
-                    @if(auth()->check() && auth()->id() !== $user->id)
-                        @if(auth()->user()->followings && auth()->user()->followings->contains($user->id))
-                            <form action="{{ route('unfollow', $user->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-person-dash"></i> Unfollow
-                                </button>
-                            </form>
+                    <!-- Follow/Unfollow Logic -->
+                    @if(auth()->check())
+                        @if(auth()->id() !== $user->id)
+                            @if($isFollowing)
+                                <!-- Unfollow Button -->
+                                <form action="{{ route('unfollow', $user->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-person-dash"></i> Unfollow
+                                    </button>
+                                </form>
+                            @else
+                                <!-- Follow Button -->
+                                <form action="{{ route('follow', $user->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-person-plus"></i> Follow
+                                    </button>
+                                </form>
+                            @endif
                         @else
-                            <form action="{{ route('follow', $user->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-person-plus"></i> Follow
-                                </button>
-                            </form>
+                            <!-- Edit Profile Button for Own Profile -->
+                            <a href="{{ route('profile.show') }}" class="btn btn-light border btn-sm">
+                                <i class="bi bi-pencil"></i> Edit Profile
+                            </a>
                         @endif
-                    @endif
-                    
-                    @if(auth()->check() && auth()->id() === $user->id)
-                        <a href="{{ route('profile.show') }}" class="btn btn-light border">
-                            <i class="bi bi-pencil"></i> تعديل الملف الشخصي
-                        </a>
-                    @endif
+                    @else
+                        <!-- Guest Follow Button - Triggers Auth Modal -->
+                        <button class="btn btn-primary btn-sm require-auth" data-action="follow">
+                            <i class="bi bi-person-plus"></i> Follow
+                        </button>
+                        
+                        <!-- Message Button for Guests -->
+                        <button class="btn btn-outline-primary btn-sm require-auth" data-action="message">
+                            <i class="bi bi-chat-dots"></i> Message
+                        </button>
+                    @endguest
+
+                    <!-- Additional Action Buttons -->
+                    @auth
+                        @if(auth()->id() !== $user->id)
+                            <button class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-chat-dots"></i> Message
+                            </button>
+                            <div class="dropdown d-inline">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-flag"></i> Report User
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-person-x"></i> Block User
+                                    </a></li>
+                                </ul>
+                            </div>
+                        @endif
+                    @endauth
+                </div>
+
+                <!-- Profile Stats -->
+                <div class="text-muted small">
+                    <span class="me-3">
+                        <strong>{{ $posts->count() }}</strong> posts
+                    </span>
+                    <span class="me-3">
+                        <strong>{{ $followersCount ?? 0 }}</strong> followers
+                    </span>
+                    <span>
+                        <strong>{{ $followingsCount ?? 0 }}</strong> following
+                    </span>
                 </div>
             </div>
         </div>
@@ -261,18 +313,28 @@
         <div class="tab-content p-3" id="profileTabContent">
             <!-- Posts Tab -->
             <div class="tab-pane fade show active" id="posts" role="tabpanel">
-                @forelse($user->posts as $post)
+                @forelse($posts as $post)
                     <div class="card mb-3 shadow-sm border-0">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="card-title">{{ $post->title ?? 'Post' }}</h6>
+                                <div class="flex-grow-1">
+                                    @if($post->title)
+                                    <h6 class="card-title">{{ $post->title }}</h6>
+                                    @endif
                                     <p class="mb-1">{{ $post->description }}</p>
                                     @if($post->image_post)
                                         <img src="{{ asset('storage/'.$post->image_post) }}" 
                                              class="img-fluid rounded mb-2" 
                                              style="max-height:300px; object-fit:cover;" alt="Post Image">
                                     @endif
+                                    
+                                    <!-- Post Stats -->
+                                    <div class="d-flex gap-3 text-muted small mt-2">
+                                        <span><i class="bi bi-heart"></i> {{ $post->likes->count() }}</span>
+                                        <span><i class="bi bi-chat"></i> {{ $post->comments->count() }}</span>
+                                        <span><i class="bi bi-eye"></i> {{ $post->views ?? 0 }}</span>
+                                        <span><i class="bi bi-clock"></i> {{ $post->created_at->diffForHumans() }}</span>
+                                    </div>
                                 </div>
                                 <div class="text-end">
                                     <a href="{{ route('posts.show', $post->id) }}" class="btn btn-sm btn-primary rounded-pill">View</a>
@@ -281,26 +343,34 @@
                         </div>
                     </div>
                 @empty
-                    <p class="text-muted text-center">No posts yet.</p>
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-dots fs-1 text-muted mb-3"></i>
+                        <p class="text-muted">{{ $user->name }} hasn't posted anything yet.</p>
+                    </div>
                 @endforelse
             </div>
             
             <!-- Comments Tab -->
             <div class="tab-pane fade" id="comments" role="tabpanel">
                 @forelse($user->comments as $comment)
-                    <div class="card mb-2 p-2 shadow-sm border-0">
+                    <div class="card mb-2 p-3 shadow-sm border-0">
                         <div>
                             <p class="mb-1">{{ $comment->content }}</p>
                             <small class="text-muted">
-                                On post: 
-                                <a href="{{ route('posts.show', $comment->post->id) }}">
+                                Commented on: 
+                                <a href="{{ route('posts.show', $comment->post->id) }}" class="text-decoration-none">
                                     {{ Str::limit($comment->post->description, 30) }}
                                 </a>
+                                <span class="mx-2">•</span>
+                                {{ $comment->created_at->diffForHumans() }}
                             </small>
                         </div>
                     </div>
                 @empty
-                    <p class="text-muted text-center">No comments yet.</p>
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-square-text fs-1 text-muted mb-3"></i>
+                        <p class="text-muted">{{ $user->name }} hasn't commented on any posts yet.</p>
+                    </div>
                 @endforelse
             </div>
         </div>
@@ -312,22 +382,44 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="followersModalLabel">Followers</h5>
+        <h5 class="modal-title" id="followersModalLabel">
+            <i class="bi bi-people me-2"></i>Followers ({{ $followersCount ?? 0 }})
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        @if(isset($followers) && count($followers) > 0)
+        @if(isset($followers) && $followers->count() > 0)
             @foreach($followers as $follower)
-              <div class="d-flex align-items-center mb-2">
-                <img src="{{ $follower->profile?->profile_image ? asset('storage/'.$follower->profile->profile_image) : asset('images/default-avatar.png') }}" width="40" height="40" class="rounded-circle me-2">
-                <div>
-                  <a href="{{ route('profile.public', $follower->id) }}">{{ $follower->name }}</a>
-                  <div class="text-muted small">{{ '@' . ($follower->username ?? $follower->name) }}</div>
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center">
+                    <img src="{{ $follower->profile?->profile_image ? asset('storage/'.$follower->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text='.substr($follower->name, 0, 1) }}" 
+                         width="40" height="40" class="rounded-circle me-3">
+                    <div>
+                        <a href="{{ route('profile.public', $follower->id) }}" class="text-decoration-none fw-semibold">
+                            {{ $follower->name }}
+                        </a>
+                        <div class="text-muted small">{{ '@' . ($follower->username ?? strtolower(str_replace(' ', '', $follower->name))) }}</div>
+                    </div>
                 </div>
+                
+                @auth
+                    @if(auth()->id() !== $follower->id)
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-person-plus"></i>
+                        </button>
+                    @endif
+                @else
+                    <button class="btn btn-outline-primary btn-sm require-auth" data-action="follow">
+                        <i class="bi bi-person-plus"></i>
+                    </button>
+                @endauth
               </div>
             @endforeach
         @else
-          <p class="text-muted">No followers yet.</p>
+          <div class="text-center py-4">
+              <i class="bi bi-people fs-1 text-muted mb-3"></i>
+              <p class="text-muted mb-0">No followers yet.</p>
+          </div>
         @endif
       </div>
     </div>
@@ -339,22 +431,48 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="followingsModalLabel">Following</h5>
+        <h5 class="modal-title" id="followingsModalLabel">
+            <i class="bi bi-person-lines-fill me-2"></i>Following ({{ $followingsCount ?? 0 }})
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        @if(isset($followings) && count($followings) > 0)
+        @if(isset($followings) && $followings->count() > 0)
             @foreach($followings as $following)
-              <div class="d-flex align-items-center mb-2">
-                <img src="{{ $following->profile?->profile_image ? asset('storage/'.$following->profile->profile_image) : asset('images/default-avatar.png') }}" width="40" height="40" class="rounded-circle me-2">
-                <div>
-                  <a href="{{ route('profile.public', $following->id) }}">{{ $following->name }}</a>
-                  <div class="text-muted small">{{ '@' . ($following->username ?? $following->name) }}</div>
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center">
+                    <img src="{{ $following->profile?->profile_image ? asset('storage/'.$following->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text='.substr($following->name, 0, 1) }}" 
+                         width="40" height="40" class="rounded-circle me-3">
+                    <div>
+                        <a href="{{ route('profile.public', $following->id) }}" class="text-decoration-none fw-semibold">
+                            {{ $following->name }}
+                        </a>
+                        <div class="text-muted small">{{ '@' . ($following->username ?? strtolower(str_replace(' ', '', $following->name))) }}</div>
+                    </div>
                 </div>
+                
+                @auth
+                    @if(auth()->id() !== $following->id)
+                        <form action="{{ route('unfollow', $following->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="bi bi-person-dash"></i>
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <button class="btn btn-outline-primary btn-sm require-auth" data-action="follow">
+                        <i class="bi bi-person-plus"></i>
+                    </button>
+                @endauth
               </div>
             @endforeach
         @else
-          <p class="text-muted">Not following anyone yet.</p>
+          <div class="text-center py-4">
+              <i class="bi bi-person-lines-fill fs-1 text-muted mb-3"></i>
+              <p class="text-muted mb-0">Not following anyone yet.</p>
+          </div>
         @endif
       </div>
     </div>

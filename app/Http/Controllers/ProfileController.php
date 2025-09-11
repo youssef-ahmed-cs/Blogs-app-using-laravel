@@ -2,94 +2,118 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Follow;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User; 
 
 class ProfileController extends Controller
 {
-public function show()
-{
-    $user = Auth::user();
-    $followers = $user->followers()->with('profile')->get();
-    $followings = $user->followings()->with('profile')->get();
-    return view('profile.show', compact('user', 'followers', 'followings'));
-}
-    
-public function update(Request $request)
-{
-    $user = Auth::user();
-
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'bio' => 'nullable|string|max:500',
-        'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
-    ]);
-
-    // Update user name
-    $user->name = $request->name;
-    
-    // Get or create profile for the user
-    $profile = $user->profile;
-    if (!$profile) {
-        $profile = new \App\Models\Profile();
-        $profile->user_id = $user->id;
+    public function show()
+    {
+        $user = auth()->user();
+        $user->load('profile');
+        
+        return view('profile.show', compact('user'));
     }
-    $profile->bio = $request->bio;
-    
-    if ($request->hasFile('profile_image')) {
-        if ($profile->profile_image) {
-            Storage::disk('public')->delete($profile->profile_image);
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'bio' => 'nullable|string|max:500'
+        ]);
+
+        $user = auth()->user();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
+
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) {
+            // Delete old image if exists
+            if ($user->profile && $user->profile->profile_image) {
+                Storage::disk('public')->delete($user->profile->profile_image);
+            }
+
+            $imagePath = $request->file('profile_image')->store('profiles', 'public');
+            
+            // Create or update profile
+            if (!$user->profile) {
+                $user->profile()->create(['profile_image' => $imagePath, 'bio' => $request->bio]);
+            } else {
+                $user->profile->update(['profile_image' => $imagePath, 'bio' => $request->bio]);
+            }
+        } else {
+            // Update bio only
+            if (!$user->profile) {
+                $user->profile()->create(['bio' => $request->bio]);
+            } else {
+                $user->profile->update(['bio' => $request->bio]);
+            }
         }
 
-        $path = $request->file('profile_image')->store('profiles', 'public');
-        $profile->profile_image = $path;
+        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
 
-    // Save both models
-    $user->save();
-    $profile->save();
+    public function public($id)
+    {
+        $user = User::with(['posts.likes', 'posts.comments', 'comments.post', 'profile'])
+            ->findOrFail($id);
+        
+        // Get user's posts with likes and comments count
+        $posts = $user->posts()
+            ->with(['user.profile', 'likes', 'comments'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->get();
 
-    return redirect()->route('profile.show')->with('success', 'Profile updated successfully!');
+        // Get followers and followings using the User model relationships
+        $followersCount = $user->followersCount();
+        $followingsCount = $user->followingCount();
+        
+        // Get actual followers and followings for modals
+        $followers = $user->followers()->with('follower.profile')->get()->pluck('follower');
+        $followings = $user->following()->with('following.profile')->get()->pluck('following');
+
+        // Check if current user is following this user
+        $isFollowing = false;
+        if (auth()->check()) {
+            $isFollowing = auth()->user()->isFollowing($user->id);
+        }
+        
+        return view('profile.public', compact('user', 'posts', 'followers', 'followings', 'followersCount', 'followingsCount', 'isFollowing'));
+    }
+
+    public function uploadCover(Request $request, $userId)
+    {
+        $request->validate([
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $user = User::findOrFail($userId);
+        
+        // Check authorization
+        if (auth()->id() !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Delete old cover image if exists
+        if ($user->profile && $user->profile->cover_image) {
+            Storage::disk('public')->delete($user->profile->cover_image);
+        }
+
+        $coverPath = $request->file('cover_image')->store('covers', 'public');
+        
+        // Create or update profile
+        if (!$user->profile) {
+            $user->profile()->create(['cover_image' => $coverPath]);
+        } else {
+            $user->profile->update(['cover_image' => $coverPath]);
+        }
+
+        return redirect()->back()->with('success', 'Cover photo updated successfully!');
+    }
 }
-public function public($id)
-{
-    $user = User::with('profile')->findOrFail($id);
-
-    $posts = $user->posts()->latest()->get();
-    $comments = $user->comments()->latest()->get();
-
-    // جلب المتابعين والمتابعين مع البروفايل
-    $followers = $user->followers()->with('profile')->get();
-    $followings = $user->followings()->with('profile')->get();
-
-    return view('profile.public', compact('user', 'posts', 'comments', 'followers', 'followings'));
-}
-
-public function uploadCover(Request $request, User $user)
-{
-    // Validate only authenticated user can update their own cover
-    if (Auth::id() !== $user->id) {
-        return back()->with('error', 'لا يمكنك تغيير صورة غلاف مستخدم آخر');
-    }
-
-    $request->validate([
-        'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
-
-    // Create profile if it doesn't exist
-    $profile = $user->profile ?? $user->profile()->create();
-
-    // Delete old cover image if exists
-    if ($profile->cover_image && Storage::disk('public')->exists($profile->cover_image)) {
-        Storage::disk('public')->delete($profile->cover_image);
-    }
-
-    // Store new cover image
-    $path = $request->file('cover_image')->store('cover_images', 'public');
-    $profile->cover_image = $path;
-    $profile->save();
-
-    return back()->with('success', 'تم تحديث صورة الغلاف بنجاح');
-}}

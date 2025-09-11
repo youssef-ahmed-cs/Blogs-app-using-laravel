@@ -19,6 +19,11 @@ class Post extends Model
         'content', 'image', 'views', 'image_post',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function user_creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -44,11 +49,23 @@ public function comments()
 
 public function isLikedBy($user)
 {
+    // Check if user exists and is not null
+    if (!$user || !$user->id) {
+        return false;
+    }
+    
     return $this->likes()->where('user_id', $user->id)->exists();
 }
 
+public function likesCount()
+{
+    return $this->likes()->count();
+}
 
-
+public function commentsCount()
+{
+    return $this->comments()->count();
+}
 }
 
 

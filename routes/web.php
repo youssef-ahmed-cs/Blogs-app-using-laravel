@@ -10,10 +10,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\FollowController;
 
-Route::get('/', static function () {
-    return view('welcome');
-});
+// Make posts the main page
+Route::get('/', [PostController::class, 'index'])->name('home');
 
+// Authentication routes (accessible to guests)
 Route::controller(AuthController::class)->group(function () {
     Route::get('login', 'loginForm')->name('login');
     Route::post('login', 'loginPost')->name('login.post');
@@ -22,49 +22,46 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('logout', 'logout')->name('logout');
 });
 
+// Public routes (accessible to everyone)
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/profile/{id}', [ProfileController::class, 'public'])->name('profile.public');
+
+// Protected routes (require authentication)
 Route::middleware('auth')->group(function () {
-    // Posts routes
-    Route::resource('posts', PostController::class);
+    // Posts management
+    Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     
-    // Like routes - using LikeController only
+    // Like and Comment routes (require auth)
     Route::post('/posts/{post}/toggle-like', [LikeController::class, 'toggleLike'])->name('posts.toggle-like');
-    
-    // Comments routes
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     
+    // Follow/Unfollow routes (if you have them)
+    Route::post('/follow/{user}', [FollowController::class, 'follow'])->name('follow');
+    Route::delete('/unfollow/{user}', [FollowController::class, 'unfollow'])->name('unfollow');
+    
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/profile/{id}', [ProfileController::class, 'public'])->name('profile.public');
+    Route::post('/profile/{user}/cover-upload', [ProfileController::class, 'uploadCover'])->name('profile.cover.upload');
     
-    // Notifications routes
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-    Route::put('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    // Notifications routes (if implemented)
+    Route::get('/notifications', function() { 
+        return redirect()->route('home'); 
+    })->name('notifications.index');
     
-    // Settings routes
-    Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
-    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
-    Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.updatePassword');
-    Route::delete('/settings/delete', [SettingsController::class, 'destroy'])->name('settings.destroy');
+    // Settings routes (if implemented)  
+    Route::get('/settings', function() { 
+        return redirect()->route('profile.show'); 
+    })->name('settings.show');
     
     // Dashboard route
     Route::get('/dashboard', function() {
-        return view('dashboard');
+        return redirect()->route('home');
     })->name('dashboard');
 });
-Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
-    ->name('notifications.markAsRead')
-    ->middleware('auth');
-
-
-Route::post('/posts/{post}/repost', [PostController::class, 'repost'])->name('posts.repost');
-
-
-Route::post('/follow/{user}', [FollowController::class, 'follow'])->name('follow');
-Route::delete('/unfollow/{user}', [FollowController::class, 'unfollow'])->name('unfollow');
-
-Route::post('/profile/{user}/cover-upload', [ProfileController::class, 'uploadCover'])->name('profile.cover.upload');

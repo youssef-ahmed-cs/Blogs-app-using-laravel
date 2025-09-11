@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -18,7 +19,7 @@ class PostController extends Controller
 
     public function index()
     {
-        $posts = Post::with(['user', 'likes', 'comments'])
+        $posts = Post::with(['user.profile', 'likes', 'comments'])
             ->withCount(['likes', 'comments'])
             ->latest()
             ->paginate(10);
@@ -28,35 +29,52 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
-        $this->authorize('view', $post);
-
+        // Allow everyone to view posts
         $post->increment('views'); 
 
-        // جلب الكومنتات واللايكات + صاحبهم
-        $post->load(['comments.user', 'likes.user']);
+        // Load comments and likes with users
+        $post->load(['comments.user.profile', 'likes.user']);
 
         return view('Posts.show', compact('post'));
     }
 
     public function create()
     {
+        // Only authenticated users can create posts
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('info', 'Please login to create posts');
+        }
+        
         return view('Posts.create');
     }
 
     public function store(Request $request)
     {
+        // Only authenticated users can store posts
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Authentication required'], 401);
+        }
+
         $request->validate([
-            'title' => 'required|max:255',
-            'description' => 'required',
+            'title' => 'nullable|max:255',
+            'description' => 'required|max:2000',
+            'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $post = new Post();
         $post->title = $request->title;
         $post->description = $request->description;
         $post->user_id = auth()->id();
+
+        // Handle image upload
+        if ($request->hasFile('image_post')) {
+            $imagePath = $request->file('image_post')->store('posts', 'public');
+            $post->image_post = $imagePath;
+        }
+
         $post->save();
 
-        return redirect()->route('posts.index')->with('success', 'تم نشر البوست بنجاح 🎉');
+        return redirect()->route('home')->with('success', 'تم نشر البوست بنجاح 🎉');
     }
 
     public function edit(Post $post)
@@ -65,11 +83,30 @@ class PostController extends Controller
         return view('Posts.edit', compact('post'));
     }
 
-    public function update(UpdatePostRequest $request, Post $post)
+    public function update(Request $request, Post $post)
     {
         $this->authorize('update', $post);
         
-        $post->update($request->validated());
+        $request->validate([
+            'title' => 'nullable|max:255',
+            'description' => 'required|max:2000',
+            'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $post->title = $request->title;
+        $post->description = $request->description;
+
+        // Handle image upload
+        if ($request->hasFile('image_post')) {
+            // Delete old image
+            if ($post->image_post) {
+                Storage::disk('public')->delete($post->image_post);
+            }
+            $imagePath = $request->file('image_post')->store('posts', 'public');
+            $post->image_post = $imagePath;
+        }
+
+        $post->save();
         
         return redirect()->route('posts.show', $post)->with('success', 'تم تحديث البوست بنجاح');
     }
@@ -78,25 +115,15 @@ class PostController extends Controller
     {
         $this->authorize('delete', $post);
         
+        // Delete image if exists
+        if ($post->image_post) {
+            Storage::disk('public')->delete($post->image_post);
+        }
+        
         $post->delete();
         
-        return redirect()->route('posts.index')->with('success', 'تم حذف البوست بنجاح');
+        return redirect()->route('home')->with('success', 'تم حذف البوست بنجاح');
     }
-
-    public function repost($postId)
-{
-    $original = Post::findOrFail($postId);
-
-    // إنشاء نسخة جديدة للمستخدم الحالي
-    $repost = $original->replicate(); // تنسخ كل الحقول ما عدا الـ ID
-    $repost->user_id = auth()->id(); // ملكية البوست الجديد للمستخدم الحالي
-    $repost->created_at = now();
-    $repost->updated_at = now();
-    $repost->save();
-
-    return redirect()->back()->with('success', 'تم إعادة نشر البوست ✅');
-}
-
 }
 
 
