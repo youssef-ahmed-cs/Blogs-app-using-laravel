@@ -10,8 +10,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\FollowController;
 
-// Make posts the main page
+// Main posts route - both / and /posts should work
 Route::get('/', [PostController::class, 'index'])->name('home');
+Route::get('/posts', [PostController::class, 'index'])->name('posts.index'); // Add this missing route
 
 // Authentication routes (accessible to guests)
 Route::controller(AuthController::class)->group(function () {
@@ -41,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     
-    // Follow/Unfollow routes (if you have them)
+    // Follow/Unfollow routes
     Route::post('/follow/{user}', [FollowController::class, 'follow'])->name('follow');
     Route::delete('/unfollow/{user}', [FollowController::class, 'unfollow'])->name('unfollow');
     
@@ -50,14 +51,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/{user}/cover-upload', [ProfileController::class, 'uploadCover'])->name('profile.cover.upload');
     
-    // Notifications routes (if implemented)
-    Route::get('/notifications', function() { 
-        return redirect()->route('home'); 
-    })->name('notifications.index');
+    // Placeholder routes for non-implemented features
+ Route::get('/notifications', [NotificationController::class, 'index'])
+    ->name('notifications.index')
+    ->middleware('auth');
     
-    // Settings routes (if implemented)  
     Route::get('/settings', function() { 
-        return redirect()->route('profile.show'); 
+        return redirect()->route('profile.show')->with('info', 'Use Profile Settings for now.'); 
     })->name('settings.show');
     
     // Dashboard route

@@ -19,12 +19,12 @@ class PostController extends Controller
 
     public function index()
     {
-        $posts = Post::with(['user.profile', 'likes', 'comments'])
+        $posts = Post::with(['user.profile', 'likes', 'comments.user'])
             ->withCount(['likes', 'comments'])
             ->latest()
             ->paginate(10);
 
-        return view('Posts.index', compact('posts'));
+        return view('posts.index', compact('posts'));
     }
 
     public function show(Post $post)
@@ -35,7 +35,7 @@ class PostController extends Controller
         // Load comments and likes with users
         $post->load(['comments.user.profile', 'likes.user']);
 
-        return view('Posts.show', compact('post'));
+        return view('posts.show', compact('post'));
     }
 
     public function create()
@@ -45,7 +45,7 @@ class PostController extends Controller
             return redirect()->route('login')->with('info', 'Please login to create posts');
         }
         
-        return view('Posts.create');
+        return view('posts.create');
     }
 
     public function store(Request $request)
@@ -56,15 +56,15 @@ class PostController extends Controller
         }
 
         $request->validate([
-            'title' => 'nullable|max:255',
-            'description' => 'required|max:2000',
+            'description' => 'required|string|max:1000',
+            'title' => 'nullable|string|max:255',
             'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $post = new Post();
+        $post->user_id = auth()->id();
         $post->title = $request->title;
         $post->description = $request->description;
-        $post->user_id = auth()->id();
 
         // Handle image upload
         if ($request->hasFile('image_post')) {
@@ -79,17 +79,24 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-        $this->authorize('update', $post);
-        return view('Posts.edit', compact('post'));
+        // Check if user owns the post
+        if (auth()->id() !== $post->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('posts.edit', compact('post'));
     }
 
     public function update(Request $request, Post $post)
     {
-        $this->authorize('update', $post);
-        
+        // Check if user owns the post
+        if (auth()->id() !== $post->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
-            'title' => 'nullable|max:255',
-            'description' => 'required|max:2000',
+            'description' => 'required|string|max:1000',
+            'title' => 'nullable|string|max:255',
             'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
@@ -98,30 +105,34 @@ class PostController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image_post')) {
-            // Delete old image
+            // Delete old image if exists
             if ($post->image_post) {
                 Storage::disk('public')->delete($post->image_post);
             }
+
             $imagePath = $request->file('image_post')->store('posts', 'public');
             $post->image_post = $imagePath;
         }
 
         $post->save();
-        
+
         return redirect()->route('posts.show', $post)->with('success', 'تم تحديث البوست بنجاح');
     }
 
     public function destroy(Post $post)
     {
-        $this->authorize('delete', $post);
-        
+        // Check if user owns the post
+        if (auth()->id() !== $post->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // Delete image if exists
         if ($post->image_post) {
             Storage::disk('public')->delete($post->image_post);
         }
-        
+
         $post->delete();
-        
+
         return redirect()->route('home')->with('success', 'تم حذف البوست بنجاح');
     }
 }

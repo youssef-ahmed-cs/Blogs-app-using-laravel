@@ -6,8 +6,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title')</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        /* Ensure dropdown is visible and properly styled */
+        .navbar-nav .dropdown-menu {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: auto;
+            z-index: 1000;
+            min-width: 280px;
+            padding: 8px 0;
+            margin: 8px 0 0;
+            background-color: #fff;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .navbar-nav .dropdown-menu.show {
+            display: block !important; /* Force show when active */
+        }
+
+        .navbar-nav .dropdown-toggle::after {
+            display: none; /* Hide default arrow */
+        }
+
+        /* Profile picture hover effect */
+        .navbar-nav .nav-link.dropdown-toggle {
+            padding: 4px;
+            border-radius: 50px;
+            transition: all 0.2s ease;
+        }
+
+        .navbar-nav .nav-link.dropdown-toggle:hover {
+            background: rgba(0, 0, 0, 0.05);
+            transform: scale(1.05);
+        }
+
+        /* Dropdown header styling */
+        .navbar-nav .dropdown-header {
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            margin: 0 8px 8px 8px;
+            border: none;
+        }
+
+        .navbar-nav .dropdown-item {
+            padding: 12px 20px;
+            font-size: 14px;
+            color: #374151;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+            margin: 2px 8px;
+        }
+
+        .navbar-nav .dropdown-item:hover {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            color: #1f2937;
+            transform: translateX(4px);
+        }
+
+        .navbar-nav .dropdown-item i {
+            width: 18px;
+            margin-right: 12px;
+            opacity: 0.7;
+        }
+
+        .navbar-nav .dropdown-divider {
+            margin: 8px 16px;
+            border-color: #e5e7eb;
+        }
+
+        /* Debug: Add red border to test if dropdown exists */
+        .navbar-nav .dropdown {
+            position: relative;
+        }
+
+        /* Make sure navbar has proper z-index */
+        .navbar {
+            z-index: 1030;
+            position: relative;
+        }
+    </style>
 </head>
 <body>
 
@@ -21,7 +107,7 @@
         <!-- Search -->
         <form class="d-flex mx-auto" style="width: 400px;">
             <div class="input-group">
-                <input class="form-control" type="search" placeholder="Search..." aria-label="Search">
+                <input class="form-control" type="search" placeholder="Search FaceBog..." aria-label="Search">
                 <button class="btn btn-outline-secondary" type="submit">
                     <i class="bi bi-search"></i>
                 </button>
@@ -32,68 +118,87 @@
         <ul class="navbar-nav d-flex align-items-center">
             @auth
                 <!-- Add Post Button -->
-                <li class="nav-item me-3">
-                    <a class="nav-link" href="{{ route('posts.create') }}">
-                        <i class="bi bi-plus-circle fs-5"></i>
-                    </a>
-                </li>
 
-                <!-- Notifications -->
-                @php
-                    $unreadCount = auth()->user()->unreadNotifications()->count();
-                @endphp
-                <li class="nav-item me-3">
-                    <a class="nav-link position-relative" href="{{ route('notifications.index') }}">
-                        <i class="bi bi-bell fs-5"></i>
-                        @if($unreadCount > 0)
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                {{ $unreadCount }}
-                            </span>
-                        @endif
-                    </a>
-                </li>
+<li class="nav-item me-3">
+    <a class="nav-link position-relative" href="{{ route('notifications.index') }}">
+        <i class="bi bi-bell fs-5"></i>
+        @php
+            $unreadCount = auth()->user()->unreadNotifications()->count() ?? 0;
+        @endphp
+        @if($unreadCount > 0)
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ $unreadCount }}
+            </span>
+        @endif
+    </a>
+</li>
 
-                <!-- Profile Dropdown -->
+
+
+                <!-- Profile Dropdown - FIXED VERSION -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" 
-                       href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                       href="#" 
+                       id="navbarDropdown" 
+                       role="button" 
+                       data-bs-toggle="dropdown" 
+                       data-bs-display="static"
+                       aria-expanded="false">
                         @if(auth()->user()->profile?->profile_image)
                             <img src="{{ asset('storage/' . auth()->user()->profile->profile_image) }}" 
                                  alt="Profile" class="rounded-circle" width="35" height="35">
                         @else
-                            <img src="https://via.placeholder.com/35x35.png?text={{ substr(auth()->user()->name, 0, 1) }}" 
+                            <img src="https://via.placeholder.com/35x35/667eea/ffffff?text={{ substr(auth()->user()->name, 0, 1) }}" 
                                  alt="Profile" class="rounded-circle" width="35" height="35">
                         @endif
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
+                    
+                    <!-- Dropdown Menu -->
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <!-- Profile Header -->
                         <li class="dropdown-header">
                             <div class="d-flex align-items-center">
                                 @if(auth()->user()->profile?->profile_image)
                                     <img src="{{ asset('storage/' . auth()->user()->profile->profile_image) }}" 
-                                         alt="Profile" class="rounded-circle me-2" width="40" height="40">
+                                         alt="Profile" class="rounded-circle me-3" width="50" height="50">
                                 @else
-                                    <img src="https://via.placeholder.com/40x40.png?text={{ substr(auth()->user()->name, 0, 1) }}" 
-                                         alt="Profile" class="rounded-circle me-2" width="40" height="40">
+                                    <img src="https://via.placeholder.com/50x50/667eea/ffffff?text={{ substr(auth()->user()->name, 0, 1) }}" 
+                                         alt="Profile" class="rounded-circle me-3" width="50" height="50">
                                 @endif
                                 <div>
                                     <div class="fw-semibold">{{ auth()->user()->name }}</div>
-                                    <small class="text-muted">{{ '@' . (auth()->user()->username ?? auth()->user()->name) }}</small>
+                                    <small class="text-muted">{{ '@' . (auth()->user()->username ?? strtolower(str_replace(' ', '', auth()->user()->name))) }}</small>
                                 </div>
                             </div>
                         </li>
+                        
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ route('profile.public', auth()->id()) }}">
-                            <i class="bi bi-person me-2"></i>Public Profile</a></li>
-                        <li><a class="dropdown-item" href="{{ route('profile.show') }}">
-                            <i class="bi bi-gear me-2"></i>Profile Settings</a></li>
-                        <li><a class="dropdown-item" href="{{ route('settings.show') }}">
-                            <i class="bi bi-sliders me-2"></i>Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
+                        
+                        <!-- Menu Items -->
                         <li>
-                            <form action="{{ route('logout') }}" method="POST">
+                            <a class="dropdown-item" href="{{ route('profile.public', auth()->id()) }}">
+                                <i class="bi bi-person"></i>Public Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('profile.show') }}">
+                                <i class="bi bi-gear"></i>Profile Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-sliders"></i>Settings
+                            </a>
+                        </li>
+                        
+                        <li><hr class="dropdown-divider"></li>
+                        
+                        <!-- Logout -->
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST" class="d-inline w-100">
                                 @csrf
-                                <button class="dropdown-item text-danger" type="submit">
-                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                <button class="dropdown-item text-danger w-100 text-start border-0 bg-transparent" type="submit">
+                                    <i class="bi bi-box-arrow-right"></i>Logout
                                 </button>
                             </form>
                         </li>
@@ -170,11 +275,44 @@
 </div>
 @endguest
 
-{{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
+<!-- Bootstrap JS - MAKE SURE THIS IS LOADED -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Debug Script to Test Dropdown -->
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+    
+    // Test if Bootstrap is loaded
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap JS is not loaded!');
+        alert('Bootstrap JS is not loaded. Dropdown will not work.');
+    } else {
+        console.log('Bootstrap JS loaded successfully');
+    }
+    
+    // Add click event listener to dropdown toggle for debugging
+    const dropdownToggle = document.getElementById('navbarDropdown');
+    if (dropdownToggle) {
+        console.log('Dropdown toggle found');
+        
+        dropdownToggle.addEventListener('click', function(e) {
+            console.log('Dropdown clicked');
+            e.preventDefault();
+            
+            const dropdownMenu = this.nextElementSibling;
+            if (dropdownMenu) {
+                dropdownMenu.classList.toggle('show');
+                console.log('Dropdown menu toggled');
+            }
+        });
+    } else {
+        console.error('Dropdown toggle not found!');
+    }
+});
+
 @auth
-// Like functionality for authenticated users
+// Like functionality
 document.addEventListener('click', function(e) {
     if (e.target.closest('.like-btn')) {
         e.preventDefault();
@@ -206,30 +344,6 @@ document.addEventListener('click', function(e) {
         })
         .catch(err => console.error(err));
     }
-});
-@else
-// Show auth modal for guests
-function requireAuth() {
-    const modal = new bootstrap.Modal(document.getElementById('authRequiredModal'));
-    modal.show();
-    return false;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.require-auth')) {
-            e.preventDefault();
-            e.stopPropagation();
-            requireAuth();
-        }
-    });
-
-    document.addEventListener('focus', function(e) {
-        if (e.target.classList.contains('comment-input')) {
-            requireAuth();
-            e.target.blur();
-        }
-    }, true);
 });
 @endauth
 </script>

@@ -6,32 +6,61 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            @auth
-            <!-- Create Post Card -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="{{ auth()->user()->profile?->profile_image ? asset('storage/'.auth()->user()->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text=U' }}" 
-                             alt="Profile" width="40" height="40" class="rounded-circle me-3">
-                        <div class="flex-grow-1">
-                            <a href="{{ route('posts.create') }}" class="form-control text-decoration-none text-muted p-3 d-block" 
-                               style="border-radius: 25px; cursor: pointer;">
-                                What's on your mind, {{ auth()->user()->name }}?
-                            </a>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-around">
-                        <a href="{{ route('posts.create') }}" class="btn btn-light flex-fill me-2">
-                            <i class="bi bi-camera text-success"></i> Photo/Video
-                        </a>
-                        <a href="{{ route('posts.create') }}" class="btn btn-light flex-fill">
-                            <i class="bi bi-emoji-smile text-warning"></i> Feeling/Activity
-                        </a>
-                    </div>
-                </div>
+@auth
+<!-- Create Post Modal Trigger -->
+<div class="card mb-4">
+    <div class="card-body d-flex align-items-center">
+        <img src="{{ auth()->user()->profile?->profile_image 
+            ? asset('storage/'.auth()->user()->profile->profile_image) 
+            : 'https://via.placeholder.com/40x40.png?text=U' }}" 
+            alt="Profile" width="40" height="40" class="rounded-circle me-3">
+
+        <div class="flex-grow-1">
+            <button class="form-control text-start text-muted p-3" 
+                    style="border-radius: 25px; cursor: pointer;"
+                    data-bs-toggle="modal" data-bs-target="#createPostModal">
+                ماذا تفكر، {{ auth()->user()->name }}؟
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg animate__animated animate__fadeInDown">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">إنشاء بوست جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            @endauth
+
+            <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <input type="text" name="title" class="form-control mb-2" placeholder="عنوان البوست" required>
+                    <textarea name="description" class="form-control mb-2 rounded-3" rows="3" placeholder="بماذا تفكر؟"></textarea>
+                    <input type="file" name="image_post" class="form-control mt-2">
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">نشر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<style>
+    .modal-content {
+        transition: transform 0.2s ease-in-out;
+    }
+    .modal-content:hover {
+        transform: scale(1.02);
+    }
+</style>
+@endpush
+@endauth
 
             <!-- Posts Feed -->
             @forelse($posts as $post)
@@ -153,19 +182,41 @@
                         @endauth
 
                         <!-- Recent Comments -->
-                        @foreach($post->comments->take(3) as $comment)
-                        <div class="d-flex mb-2">
-                            <img src="{{ $comment->user->profile?->profile_image ? asset('storage/'.$comment->user->profile->profile_image) : 'https://via.placeholder.com/32x32.png?text=U' }}" 
-                                 alt="Profile" width="32" height="32" class="rounded-circle me-2">
-                            <div class="flex-grow-1">
-                                <div class="bg-light rounded p-2">
-                                    <strong>{{ $comment->user->name }}</strong>
-                                    <p class="mb-0">{{ $comment->content }}</p>
-                                </div>
-                                <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                            </div>
-                        </div>
-                        @endforeach
+<!-- Recent Comments & Replies -->
+@foreach($post->comments->take(3) as $comment)
+<div class="comment-item mb-2">
+    <div class="d-flex align-items-start">
+        <img src="{{ $comment->user->profile?->profile_image ? asset('storage/'.$comment->user->profile->profile_image) : 'https://via.placeholder.com/32x32.png?text=U' }}" 
+             alt="Profile" width="32" height="32" class="rounded-circle me-2">
+        <div class="flex-grow-1">
+            <div class="bg-light rounded p-2">
+                <strong>{{ $comment->user->name }}</strong>
+                <p class="mb-0">{{ $comment->content }}</p>
+            </div>
+            <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+            
+            <!-- Reply Button -->
+            @auth
+            <button class="btn btn-sm btn-link reply-btn text-primary mt-1">Reply</button>
+
+            <!-- Reply Form (hidden by default) -->
+            <form action="{{ route('comments.store', $post) }}" method="POST" class="reply-form d-none mt-1">
+                @csrf
+                <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                <div class="d-flex">
+                    <input type="text" name="content" class="form-control form-control-sm rounded-pill me-2" placeholder="Write a reply..." required>
+                    <button type="submit" class="btn btn-primary btn-sm">Send</button>
+                </div>
+            </form>
+            @endauth
+
+            <!-- Reply Thread -->
+            <div class="reply-thread ms-4 mt-2"></div>
+        </div>
+    </div>
+</div>
+@endforeach
+
 
                         @if($post->comments->count() > 3)
                         <a href="{{ route('posts.show', $post) }}" class="text-primary">
@@ -197,7 +248,26 @@
         </div>
     </div>
 </div>
-
+@push('styles')
+<style>
+.reply-btn {
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+}
+.reply-btn:hover {
+    color: #0d6efd;
+    transform: scale(1.1);
+}
+.reply-thread .comment-item {
+    border-left: 2px solid #ddd;
+    padding-left: 10px;
+    margin-top: 8px;
+}
+.comment-item.animate__animated.animate__fadeIn {
+    animation-duration: 0.5s;
+}
+</style>
+@endpush
 <script>
 function toggleComments(postId) {
     const commentsDiv = document.getElementById('comments-' + postId);
@@ -207,5 +277,60 @@ function toggleComments(postId) {
         commentsDiv.style.display = 'none';
     }
 }
+
+document.addEventListener('DOMContentLoaded', function(){
+    // Reply Button Toggle
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const form = btn.closest('.comment-item').querySelector('.reply-form');
+            form.classList.toggle('d-none');
+            form.querySelector('input[name="content"]').focus();
+        });
+    });
+
+    // AJAX Reply Submission
+    document.querySelectorAll('.reply-form').forEach(form => {
+        form.addEventListener('submit', function(e){
+            e.preventDefault();
+            const input = form.querySelector('input[name="content"]');
+            const content = input.value.trim();
+            if(!content) return;
+
+            const postId = '{{ $post->id }}'; 
+            const parentId = form.querySelector('input[name="parent_id"]').value;
+
+            fetch('/posts/' + postId + '/comments', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: content, parent_id: parentId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success'){
+                    const div = document.createElement('div');
+                    div.classList.add('comment-item','animate__animated','animate__fadeIn','mt-2');
+                    div.innerHTML = `
+                        <img src="${data.comment.user_image}" class="rounded-circle me-2" width="32" height="32">
+                        <div class="flex-grow-1">
+                            <div class="bg-light rounded p-2">
+                                <strong>${data.comment.user_name}</strong>
+                                <p class="mb-0">${data.comment.content}</p>
+                            </div>
+                            <small class="text-muted">الآن</small>
+                        </div>
+                    `;
+                    form.closest('.comment-item').querySelector('.reply-thread').appendChild(div);
+                    input.value = '';
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+});
+
 </script>
 @endsection
