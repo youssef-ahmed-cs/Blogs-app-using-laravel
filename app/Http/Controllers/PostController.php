@@ -18,108 +18,85 @@ class PostController extends Controller
 
     public function index()
     {
-        $this->authorize('viewAny', Post::class);
-        $posts = Post::with('user_creator')->orderBy('views')->paginate(10);
+        $posts = Post::with(['user', 'likes', 'comments'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->paginate(10);
+
         return view('Posts.index', compact('posts'));
     }
 
-public function show(Post $post)
-{
-    $this->authorize('view', $post);
+    public function show(Post $post)
+    {
+        $this->authorize('view', $post);
 
-    $post->increment('views'); 
+        $post->increment('views'); 
 
-    // جلب الكومنتات واللايكات + صاحبهم
-    $post->load(['comments.user', 'likes.user']);
+        // جلب الكومنتات واللايكات + صاحبهم
+        $post->load(['comments.user', 'likes.user']);
 
-    return view('Posts.show', compact('post'));
-}
+        return view('Posts.show', compact('post'));
+    }
 
     public function create()
     {
-        $users = User::all();
-        return view('Posts.create', ['users' => $users]);
+        return view('Posts.create');
     }
 
-public function store(Request $request)
-{
-    $request->validate([
-        'description' => 'nullable|string',
-        'image_post'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|max:255',
+            'description' => 'required',
+        ]);
 
-$post = new Post();
-$post->title = $request->title;
-$post->description = $request->description;
-$post->user_id = auth()->id();
+        $post = new Post();
+        $post->title = $request->title;
+        $post->description = $request->description;
+        $post->user_id = auth()->id();
+        $post->save();
 
-
-    if ($request->hasFile('image_post')) {
-        $post->image_post = $request->file('image_post')->store('posts', 'public');
+        return redirect()->route('posts.index')->with('success', 'تم نشر البوست بنجاح 🎉');
     }
-
-    $post->save();
-
-    return redirect()->route('posts.index')->with('success', 'تم نشر البوست بنجاح 🎉');
-}
-
-
 
     public function edit(Post $post)
     {
         $this->authorize('update', $post);
-        $users = User::all();
-        return view('Posts.edit', ['users' => $users, 'post' => $post]);
+        return view('Posts.edit', compact('post'));
     }
 
-    public function update(UpdatePostRequest $request, $id): RedirectResponse
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        $this->authorize('update', Post::find($id));
-        $data = $request->validated();
-        $singlePost = Post::findOrFail($id);
-
-        if ($request->hasFile('image_post')) {
-            $user = auth()->user();
-            $originalName = $request->file('image_post')->getClientOriginalName();
-            $filename = $user->name . '_' . $user->id . '_' . time() . '_' . $originalName;
-            $path = $request->file('image_post')->storeAs('posts', $filename, 'public');
-            $data['image_post'] = $path;
-        }
-
-        $singlePost->update($data);
-        return to_route('posts.show', $id);
+        $this->authorize('update', $post);
+        
+        $post->update($request->validated());
+        
+        return redirect()->route('posts.show', $post)->with('success', 'تم تحديث البوست بنجاح');
     }
 
-    public function destroy(Post $post): RedirectResponse
+    public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
+        
         $post->delete();
-        return to_route('posts.index');
+        
+        return redirect()->route('posts.index')->with('success', 'تم حذف البوست بنجاح');
     }
 
-
-public function toggleLike(Post $post)
+    public function repost($postId)
 {
-    $user = auth()->user();
+    $original = Post::findOrFail($postId);
 
-    if($post->isLikedBy($user)){
-        $post->likes()->where('user_id', $user->id)->delete();
-        $status = 'unliked';
-    } else {
-        $post->likes()->create(['user_id' => $user->id]);
-        $status = 'liked';
+    // إنشاء نسخة جديدة للمستخدم الحالي
+    $repost = $original->replicate(); // تنسخ كل الحقول ما عدا الـ ID
+    $repost->user_id = auth()->id(); // ملكية البوست الجديد للمستخدم الحالي
+    $repost->created_at = now();
+    $repost->updated_at = now();
+    $repost->save();
 
-        // إرسال notification
-        if($post->user->id !== $user->id){ // ما تبعتش notification لنفسه
-            $post->user->notify(new PostInteraction($user, $post, 'like'));
-        }
-    }
-
-    return response()->json([
-        'status' => $status,
-        'likesCount' => $post->likes()->count(),
-    ]);
+    return redirect()->back()->with('success', 'تم إعادة نشر البوست ✅');
 }
+
 }
 
 

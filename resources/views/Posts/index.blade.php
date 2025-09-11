@@ -93,23 +93,59 @@
 
 
 
-        <!-- الأكشنز -->
-        <div class="post-actions d-flex justify-content-around text-muted border-top p-2">
-            <button 
-                class="btn btn-light flex-fill mx-1 rounded-3 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" 
-                data-post-id="{{ $post->id }}">
-                <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i> 
-                <span class="like-count">{{ $post->likes->count() }}</span>
-            </button>
+<!-- الأكشنز -->
+<div class="post-actions d-flex flex-column text-muted border-top p-2">
 
-            <a href="{{ route('posts.show', $post->id) }}" class="btn btn-light flex-fill mx-1 rounded-3">
-                <i class="bi bi-chat"></i> {{ $post->comments->count() ?? 0 }}
-            </a>
+    <div class="d-flex justify-content-around mb-2">
+        <!-- Like -->
+        <button 
+            class="btn btn-light flex-fill mx-1 rounded-3 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" 
+            data-post-id="{{ $post->id }}">
+            <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i> 
+            <span class="like-count">{{ $post->likes->count() }}</span>
+        </button>
 
-            <button class="btn btn-light flex-fill mx-1 rounded-3">
-                <i class="bi bi-share"></i>
-            </button>
-        </div>
+        <!-- Comment -->
+        <a href="{{ route('posts.show', $post->id) }}" class="btn btn-light flex-fill mx-1 rounded-3">
+            <i class="bi bi-chat"></i> {{ $post->comments->count() ?? 0 }}
+        </a>
+    </div>
+
+<div class="d-flex justify-content-around">
+    <!-- Share Dropdown -->
+    <div class="dropdown flex-fill mx-1">
+        <button class="btn btn-light w-100 rounded-3 dropdown-toggle" type="button" id="shareDropdown{{ $post->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-share"></i> Share
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="shareDropdown{{ $post->id }}">
+            <!-- Copy Link -->
+            <li>
+                <a class="dropdown-item copy-link-btn" href="#" data-url="{{ route('posts.show', $post->id) }}">
+                    📋 نسخ رابط
+                </a>
+            </li>
+
+            <!-- WhatsApp -->
+            <li>
+                <a class="dropdown-item" target="_blank" href="https://wa.me/?text={{ urlencode(route('posts.show', $post->id)) }}">
+                    📱 مشاركة على واتساب
+                </a>
+            </li>
+
+            <!-- Repost -->
+            <li>
+                <form action="{{ route('posts.store') }}" method="POST" class="m-0">
+                    @csrf
+                    <input type="hidden" name="repost_id" value="{{ $post->id }}">
+                    <button type="submit" class="dropdown-item text-success">
+                        🔄 Repost
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</div>
+
 
     </div>
     @endforeach
@@ -187,5 +223,73 @@
         font-size: 15px;
         line-height: 1.5;
     }
+    .post-actions .btn-light {
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    transition: 0.2s;
+}
+.post-actions .btn-light:hover {
+    background: #e9ecef;
+}
+.post-actions .btn-success {
+    background: #28a745;
+    color: #fff;
+    transition: 0.2s;
+}
+.post-actions .btn-success:hover {
+    background: #218838;
+}
+
 </style>
 @endpush
+
+<script>
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.copy-link-btn')) {
+        e.preventDefault();
+        const url = e.target.closest('.copy-link-btn').dataset.url;
+        navigator.clipboard.writeText(url);
+        // ما فيش alert
+    }
+});
+    // Like button already موجود
+    if (e.target.closest('.like-btn')) {
+        const btn = e.target.closest('.like-btn');
+        const postId = btn.dataset.postId;
+        const likeCountSpan = btn.querySelector('.like-count');
+        const icon = btn.querySelector('i');
+
+        fetch(`/posts/${postId}/toggle-like`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'liked') {
+                btn.classList.add('text-danger');
+                icon.classList.replace('bi-heart', 'bi-heart-fill');
+            } else {
+                btn.classList.remove('text-danger');
+                icon.classList.replace('bi-heart-fill', 'bi-heart');
+            }
+            likeCountSpan.textContent = data.likesCount;
+        })
+        .catch(err => console.error(err));
+    }
+});
+</script>
+
+<script>
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.copy-link-btn')) {
+        e.preventDefault();
+        const url = e.target.closest('.copy-link-btn').dataset.url;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('تم نسخ رابط البوست ✅');
+        });
+    }
+});
+</script>

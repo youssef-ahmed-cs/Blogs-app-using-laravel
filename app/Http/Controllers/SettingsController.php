@@ -10,34 +10,57 @@ class SettingsController extends Controller
 {
     public function show()
     {
-        return view('settings.show');
+        $user = Auth::user();
+        return view('settings.show', compact('user'));
+    }
+
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
+
+        return redirect()->route('settings.show')->with('success', 'تم تحديث الإعدادات بنجاح');
     }
 
     public function updatePassword(Request $request)
     {
+        $user = Auth::user();
+        
         $request->validate([
-            'current_password' => 'required',
-            'new_password' => 'required|string|min:8|confirmed',
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (!Hash::check($request->current_password, Auth::user()->password)) {
-            return back()->withErrors(['current_password' => 'Current password is incorrect']);
+        // Check if current password is correct
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
         }
 
-        $user = Auth::user();
-        $user->password = Hash::make($request->new_password);
+        // Update password
+        $user->password = Hash::make($request->password);
         $user->save();
 
-        return back()->with('success', 'Password updated successfully!');
+        return redirect()->route('settings.show')->with('success', 'تم تحديث كلمة المرور بنجاح');
     }
 
-    public function destroy(Request $request)
+    public function destroy()
     {
         $user = Auth::user();
-        Auth::logout();
+        
+        // Delete user's posts, comments, likes, etc. (cascade should handle this)
         $user->delete();
-
-        return redirect('/')->with('success', 'Your account has been deleted.');
+        
+        Auth::logout();
+        
+        return redirect()->route('login')->with('success', 'تم حذف الحساب بنجاح');
     }
 }
 

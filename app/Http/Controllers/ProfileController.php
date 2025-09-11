@@ -9,12 +9,13 @@ use App\Models\User;
 
 class ProfileController extends Controller
 {
-    public function show()
-    {
-        $user = Auth::user();
-        return view('profile.show', compact('user'));
-    }
-
+public function show()
+{
+    $user = Auth::user();
+    $followers = $user->followers()->with('profile')->get();
+    $followings = $user->followings()->with('profile')->get();
+    return view('profile.show', compact('user', 'followers', 'followings'));
+}
     
 public function update(Request $request)
 {
@@ -59,9 +60,36 @@ public function public($id)
     $posts = $user->posts()->latest()->get();
     $comments = $user->comments()->latest()->get();
 
-    return view('profile.public', compact('user', 'posts', 'comments'));
+    // جلب المتابعين والمتابعين مع البروفايل
+    $followers = $user->followers()->with('profile')->get();
+    $followings = $user->followings()->with('profile')->get();
+
+    return view('profile.public', compact('user', 'posts', 'comments', 'followers', 'followings'));
 }
 
+public function uploadCover(Request $request, User $user)
+{
+    // Validate only authenticated user can update their own cover
+    if (Auth::id() !== $user->id) {
+        return back()->with('error', 'لا يمكنك تغيير صورة غلاف مستخدم آخر');
+    }
 
+    $request->validate([
+        'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
 
-}
+    // Create profile if it doesn't exist
+    $profile = $user->profile ?? $user->profile()->create();
+
+    // Delete old cover image if exists
+    if ($profile->cover_image && Storage::disk('public')->exists($profile->cover_image)) {
+        Storage::disk('public')->delete($profile->cover_image);
+    }
+
+    // Store new cover image
+    $path = $request->file('cover_image')->store('cover_images', 'public');
+    $profile->cover_image = $path;
+    $profile->save();
+
+    return back()->with('success', 'تم تحديث صورة الغلاف بنجاح');
+}}

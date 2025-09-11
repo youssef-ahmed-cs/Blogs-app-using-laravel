@@ -13,7 +13,7 @@
         <p class="text-sm text-gray-500">Enter your details to register</p>
     </div>
 
-    <form method="POST" action="{{ route('post.register') }}" class="space-y-4">
+    <form method="POST" action="{{ route('register.post') }}" class="space-y-4">
         @csrf
 
         <div>

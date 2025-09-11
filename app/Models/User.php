@@ -72,5 +72,18 @@ public function posts()
     return $this->hasMany(Post::class);
 }
 
+public function followers()
+{
+    return $this->belongsToMany(User::class, 'follows', 'followed_id', 'follower_id');
+}
+
+public function followings()
+{
+    return $this->belongsToMany(User::class, 'follows', 'follower_id', 'followed_id');
+}
+public function isFollowing(User $user)
+{
+    return $this->followings()->where('followed_id', $user->id)->exists();
+}
 }
 
