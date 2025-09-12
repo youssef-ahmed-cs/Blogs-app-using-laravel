@@ -41,14 +41,14 @@ class SettingsController extends Controller
 
         // Check if current password is correct
         if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
         }
 
         // Update password
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return redirect()->route('settings.show')->with('success', 'تم تحديث كلمة المرور بنجاح');
+        return redirect()->route('settings.show')->with('success', 'Password updated successfully!');
     }
 
     public function destroy()
@@ -60,7 +60,7 @@ class SettingsController extends Controller
         
         Auth::logout();
         
-        return redirect()->route('login')->with('success', 'تم حذف الحساب بنجاح');
+        return redirect()->route('login')->with('success', 'Your account has been deleted successfully.');
     }
 }
 
