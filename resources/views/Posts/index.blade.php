@@ -167,7 +167,7 @@
                     </div>
 
                     <!-- Comments Section -->
-                    <div id="comments-{{ $post->id }}" class="mt-3" style="display: none;">
+                    <div id="comments-{{ $post->id }}" class="mt-3 comments-container p-3 border-top" style="display: none;">
                         @auth
                         <form action="{{ route('comments.store', $post) }}" method="POST" class="mb-3">
                             @csrf
@@ -175,7 +175,7 @@
                                 <img src="{{ auth()->user()->profile?->profile_image ? asset('storage/'.auth()->user()->profile->profile_image) : 'https://via.placeholder.com/32x32.png?text=U' }}" 
                                      alt="Profile" width="32" height="32" class="rounded-circle me-2">
                                 <div class="flex-grow-1">
-                                    <input type="text" name="content" class="form-control rounded-pill" 
+                                    <input type="text" name="content" class="form-control rounded-pill comment-input" 
                                            placeholder="Write a comment..." required>
                                 </div>
                             </div>
@@ -191,45 +191,19 @@
                         @endauth
 
                         <!-- Recent Comments -->
-<!-- Recent Comments & Replies -->
-@foreach($post->comments->take(3) as $comment)
-<div class="comment-item mb-2">
-    <div class="d-flex align-items-start">
-        <img src="{{ $comment->user->profile?->profile_image ? asset('storage/'.$comment->user->profile->profile_image) : 'https://via.placeholder.com/32x32.png?text=U' }}" 
-             alt="Profile" width="32" height="32" class="rounded-circle me-2">
-        <div class="flex-grow-1">
-            <div class="bg-light rounded p-2">
-                <strong>{{ $comment->user->name }}</strong>
-                <p class="mb-0">{{ $comment->content }}</p>
-            </div>
-            <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-            
-            <!-- Reply Button -->
-            @auth
-            <button class="btn btn-sm btn-link reply-btn text-primary mt-1">Reply</button>
-
-            <!-- Reply Form (hidden by default) -->
-            <form action="{{ route('comments.store', $post) }}" method="POST" class="reply-form d-none mt-1">
-                @csrf
-                <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                <div class="d-flex">
-                    <input type="text" name="content" class="form-control form-control-sm rounded-pill me-2" placeholder="Write a reply..." required>
-                    <button type="submit" class="btn btn-primary btn-sm">Send</button>
-                </div>
-            </form>
-            @endauth
-
-            <!-- Reply Thread -->
-            <div class="reply-thread ms-4 mt-2"></div>
-        </div>
-    </div>
-</div>
-@endforeach
-                        @if($post->comments->count() > 3)
-                        <a href="{{ route('posts.show', $post) }}" class="text-primary">
-                            View all {{ $post->comments->count() }} comments
-                        </a>
-                        @endif
+                        <div class="recent-comments-container">
+                            @foreach($post->comments->where('parent_id', null)->take(2) as $comment)
+                                @include('Partials.comment-thread', ['comment' => $comment, 'showReplies' => false])
+                            @endforeach
+                            
+                            @if($post->comments->count() > 2)
+                                <div class="text-center mt-2">
+                                    <a href="{{ route('posts.show', $post) }}" class="text-primary view-more-comments">
+                                        <i class="bi bi-chat-text me-1"></i> View all {{ $post->comments->count() }} comments
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -277,12 +251,52 @@
 @endpush
 @push('scripts')
 <script>
-function toggleComments(postId) {
-    const commentsDiv = document.getElementById('comments-' + postId);
-    if (commentsDiv.style.display === 'none' || commentsDiv.style.display === '') {
-        commentsDiv.style.display = 'block';
+    const commentsContainer = document.getElementById(`comments-${postId}`);
+    const commentBtn = document.querySelector(`button[onclick="toggleComments(${postId})"]`);
+    
+    if (commentsContainer.style.display === 'none' || !commentsContainer.style.display) {
+        // Show loading spinner in button
+        if (commentBtn) {
+            const originalButtonText = commentBtn.innerHTML;
+            commentBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-1"></i> Loading...';
+            commentBtn.disabled = true;
+            
+            // Add active class
+            commentBtn.classList.add('active', 'bg-light');
+        }
+        
+        // Show comments with animation after small delay (simulates loading)
+        setTimeout(() => {
+            commentsContainer.style.display = 'block';
+            commentsContainer.classList.add('animate__animated', 'animate__fadeIn');
+            
+            // Reset button
+            if (commentBtn) {
+                commentBtn.innerHTML = '<i class="bi bi-chat"></i> Comment';
+                commentBtn.disabled = false;
+            }
+            
+            // Focus on comment input if user is authenticated
+            const commentInput = commentsContainer.querySelector('input[name="content"]');
+            if (commentInput) {
+                setTimeout(() => {
+                    commentInput.focus();
+                }, 300);
+            }
+        }, 500);
     } else {
-        commentsDiv.style.display = 'none';
+        // Hide comments with animation
+        commentsContainer.classList.add('animate__animated', 'animate__fadeOut');
+        
+        setTimeout(() => {
+            commentsContainer.style.display = 'none';
+            commentsContainer.classList.remove('animate__animated', 'animate__fadeOut');
+        }, 300);
+        
+        // Remove active class from the comment button
+        if (commentBtn) {
+            commentBtn.classList.remove('active', 'bg-light');
+        }
     }
 }
 
@@ -303,8 +317,11 @@ document.addEventListener('DOMContentLoaded', function(){
             const input = form.querySelector('input[name="content"]');
             const content = input.value.trim();
             if(!content) return;
-
-            const postId = '{{ $post->id }}'; 
+            
+            // Get post_id from the form's action URL or hidden input
+            const postId = form.querySelector('input[name="post_id"]') 
+                ? form.querySelector('input[name="post_id"]').value 
+                : form.action.match(/\/posts\/(\d+)\/comments/)[1];
             const parentId = form.querySelector('input[name="parent_id"]').value;
 
             fetch('/posts/' + postId + '/comments', {
@@ -340,43 +357,201 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 });
 
-// // Like functionality - Fixed version
-// document.addEventListener('DOMContentLoaded', function() {
-//     document.querySelectorAll('.like-btn').forEach(button => {
-//         button.addEventListener('click', function(e) {
-//             e.preventDefault();
+// Like functionality with AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
 
-//             const postId = this.dataset.postId;
-//             const icon = this.querySelector('i');
-//             const countSpan = this.querySelector('span');
-//             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const postId = this.dataset.postId;
+            const icon = this.querySelector('i');
+            const countSpan = this.querySelector('.like-count');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-//             fetch(`/posts/${postId}/toggle-like`, {
-//                 method: 'POST',
-//                 headers: {
-//                     'X-CSRF-TOKEN': csrfToken,
-//                     'Accept': 'application/json'
-//                 }
-//             })
-//             .then(res => res.json())
-//             .then(data => {
-//                 if (data.success) {
-//                     if (data.liked) {
-//                         this.classList.add('text-danger');
-//                         icon.classList.remove('bi-heart');
-//                         icon.classList.add('bi-heart-fill');
-//                     } else {
-//                         this.classList.remove('text-danger');
-//                         icon.classList.remove('bi-heart-fill');
-//                         icon.classList.add('bi-heart');
-//                     }
-//                     countSpan.textContent = data.likes_count;
-//                 }
-//             });
-//         });
-//     });
-// });
+            fetch(`/posts/${postId}/toggle-like`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.liked) {
+                        this.classList.add('text-danger');
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
+                    } else {
+                        this.classList.remove('text-danger');
+                        icon.classList.remove('bi-heart-fill');
+                        icon.classList.add('bi-heart');
+                    }
+                    countSpan.textContent = data.likes_count;
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
 
+    // Add active class to comment button when comments are visible
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('button[onclick^="toggleComments"]')) {
+            const btn = e.target.closest('button[onclick^="toggleComments"]');
+            const postId = btn.getAttribute('onclick').match(/toggleComments\((\d+)\)/)[1];
+            const commentsContainer = document.getElementById(`comments-${postId}`);
+            
+            if (commentsContainer.style.display === 'none' || !commentsContainer.style.display) {
+                // Remove active from all other comment buttons
+                document.querySelectorAll('button[onclick^="toggleComments"]').forEach(otherBtn => {
+                    if (otherBtn !== btn) {
+                        otherBtn.classList.remove('active', 'bg-light');
+                    }
+                });
+            }
+        }
+    });
+    
+    // Submit comment with Enter key
+    document.querySelectorAll('.comment-input').forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                e.preventDefault();
+                this.closest('form').submit();
+            }
+        });
+    });
+});
 </script>
+
+<style>
+    /* Enhanced Comments Section Styling */
+    .comments-container {
+        background-color: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .comment-item {
+        margin-bottom: 8px;
+        padding: 8px;
+        border-radius: 12px;
+        background: #fff;
+        transition: transform 0.2s ease;
+    }
+    
+    .comment-item:hover {
+        background: #f0f2f5;
+        transform: translateX(2px);
+    }
+    
+    .comment-content {
+        padding: 8px 12px;
+        background: #f0f2f5;
+        border-radius: 18px;
+        display: inline-block;
+    }
+    
+    .view-more-comments {
+        text-decoration: none;
+        font-size: 0.9rem;
+        color: #4267B2 !important;
+        padding: 5px 10px;
+        border-radius: 16px;
+        background-color: #e6eaf0;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    
+    .view-more-comments:hover {
+        background-color: #dfe3ea;
+        transform: translateY(-2px);
+    }
+    
+    .btn.active {
+        background-color: #e6eaf0 !important;
+        font-weight: 500;
+    }
+    
+    /* Animation for comments */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate__fadeIn {
+        animation-duration: 0.3s;
+    }
+    
+    .animate__fadeOut {
+        animation-duration: 0.2s;
+    }
+    
+    /* Spinner animation */
+    .spin {
+        animation: spinner 0.8s linear infinite;
+        display: inline-block;
+    }
+    
+    @keyframes spinner {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
 @endpush
+
+<!-- Global Scripts - Place outside the push blocks -->
+<script>
+// Toggle Comments
+function toggleComments(postId) {
+    const commentsContainer = document.getElementById(`comments-${postId}`);
+    const commentBtn = document.querySelector(`button[onclick="toggleComments(${postId})"]`);
+    
+    if (commentsContainer.style.display === 'none' || !commentsContainer.style.display) {
+        // Show loading spinner in button
+        if (commentBtn) {
+            const originalButtonText = commentBtn.innerHTML;
+            commentBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-1"></i> Loading...';
+            commentBtn.disabled = true;
+            
+            // Add active class
+            commentBtn.classList.add('active', 'bg-light');
+        }
+        
+        // Show comments with animation after small delay (simulates loading)
+        setTimeout(() => {
+            commentsContainer.style.display = 'block';
+            commentsContainer.classList.add('animate__animated', 'animate__fadeIn');
+            
+            // Reset button
+            if (commentBtn) {
+                commentBtn.innerHTML = '<i class="bi bi-chat"></i> Comment';
+                commentBtn.disabled = false;
+            }
+            
+            // Focus on comment input if user is authenticated
+            const commentInput = commentsContainer.querySelector('input[name="content"]');
+            if (commentInput) {
+                setTimeout(() => {
+                    commentInput.focus();
+                }, 300);
+            }
+        }, 500);
+    } else {
+        // Hide comments with animation
+        commentsContainer.classList.add('animate__animated', 'animate__fadeOut');
+        
+        setTimeout(() => {
+            commentsContainer.style.display = 'none';
+            commentsContainer.classList.remove('animate__animated', 'animate__fadeOut');
+        }, 300);
+        
+        // Remove active class from the comment button
+        if (commentBtn) {
+            commentBtn.classList.remove('active', 'bg-light');
+        }
+    }
+}
+</script>
 @endsection

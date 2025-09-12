@@ -57,17 +57,20 @@ public function toggleLike(Post $post)
     {
         $request->validate([
             'content' => 'required|string|max:1000',
+            'parent_id' => 'nullable|exists:comments,id'
         ]);
 
         $post = Post::findOrFail($postId);
 
         $user = Auth::user();
         
-        $comment = new Comment();
-        $comment->content = $request->content;
-        $comment->user_id = $user->id;
-        $comment->post_id = $post->id;
-        $comment->save();
+        // Create the comment using the fillable fields
+        $comment = Comment::create([
+            'content' => $request->content,
+            'user_id' => $user->id,
+            'post_id' => $post->id,
+            'parent_id' => $request->parent_id
+        ]);
         
         // Send notification to post author if they're not the commenter
         if($post->user_id !== $user->id) {

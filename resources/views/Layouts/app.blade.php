@@ -8,6 +8,7 @@
     <title>@yield('title')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     
     <style>
         /* Ensure dropdown is visible and properly styled */
@@ -275,9 +276,6 @@
 </div>
 @endguest
 
-<!-- Bootstrap JS - MAKE SURE THIS IS LOADED -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <!-- Debug Script to Test Dropdown -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -382,5 +380,25 @@ function hideAuthCard() {
 document.getElementById('auth-overlay').addEventListener('click', hideAuthCard);
 </script>
 @endguest
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Initialize Bootstrap Dropdowns -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all dropdowns
+    var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+        return new bootstrap.Dropdown(dropdownToggleEl);
+    });
+    
+    // Debug: Check if bootstrap is loaded
+    console.log('Bootstrap version:', bootstrap.Dropdown.VERSION);
+});
+</script>
+
+<!-- Stacked Scripts -->
+@stack('scripts')
 </body>
 </html>
