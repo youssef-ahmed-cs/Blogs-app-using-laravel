@@ -17,15 +17,16 @@ class PostController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index()
-    {
-        $posts = Post::with(['user.profile', 'likes'])
-                    ->withCount(['likes', 'comments'])
-                    ->latest()
-                    ->paginate(10);
-        
-        return view('Posts.index', compact('posts'));
-    }
+public function index()
+{
+    $posts = Post::with(['user.profile']) // user + profile
+                 ->withCount(['likes', 'comments']) // عدد اللايكات والكومنتات
+                 ->latest()
+                 ->paginate(10);
+
+    return view('posts.index', compact('posts'));
+}
+
 
     public function show(Post $post)
     {

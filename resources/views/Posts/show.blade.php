@@ -39,9 +39,13 @@
 
             <!-- أزرار الإعجاب والتعليقات والمشاركة -->
             <div class="d-flex justify-content-around border-top pt-2 text-muted post-actions">
-                <button class="btn btn-light p-1 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" data-post-id="{{ $post->id }}">
-                    <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i> <span>{{ $post->likes->count() }}</span>
-                </button>
+<button class="btn btn-light p-1 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" 
+        data-post-id="{{ $post->id }}">
+    <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+    <span class="like-count">{{ $post->likes->count() }}</span>
+</button>
+
+
                 <button class="btn btn-light p-1">
                     <i class="bi bi-chat"></i> {{ $post->comments->count() }}
                 </button>

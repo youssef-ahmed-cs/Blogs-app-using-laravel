@@ -319,16 +319,17 @@ document.addEventListener('click', function(e) {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.status === 'liked') {
-                btn.classList.add('text-danger');
-                icon.classList.replace('bi-heart', 'bi-heart-fill');
-            } else {
-                btn.classList.remove('text-danger');
-                icon.classList.replace('bi-heart-fill', 'bi-heart');
-            }
-            if (likeCountSpan) {
-                likeCountSpan.textContent = data.likesCount;
-            }
+if (data.liked) {
+    btn.classList.add('text-danger');
+    icon.classList.replace('bi-heart', 'bi-heart-fill');
+} else {
+    btn.classList.remove('text-danger');
+    icon.classList.replace('bi-heart-fill', 'bi-heart');
+}
+if (likeCountSpan) {
+    likeCountSpan.textContent = data.likes_count;
+}
+
         })
         .catch(err => console.error(err));
     }

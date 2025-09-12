@@ -37,25 +37,12 @@ public function user(): BelongsTo
 }
 
 
-public function likes()
-{
-    return $this->hasMany(Like::class);
-}
-
 public function comments()
 {
     return $this->hasMany(Comment::class);
 }
 
-public function isLikedBy($user)
-{
-    // Check if user exists and is not null
-    if (!$user || !$user->id) {
-        return false;
-    }
-    
-    return $this->likes()->where('user_id', $user->id)->exists();
-}
+
 
 public function likesCount()
 {
@@ -66,6 +53,20 @@ public function commentsCount()
 {
     return $this->comments()->count();
 }
+
+// app/Models/Post.php
+// App/Models/Post.php
+public function likes()
+{
+    return $this->hasMany(Like::class);
+}
+
+public function isLikedBy($user)
+{
+    return $this->likes()->where('user_id', $user->id)->exists();
+}
+
+
 }
 
 

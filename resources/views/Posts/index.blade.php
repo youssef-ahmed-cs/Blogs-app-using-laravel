@@ -140,12 +140,13 @@
                     <!-- Action Buttons -->
                     <div class="d-flex border-top pt-2">
                         @auth
-                        <button class="btn btn-light flex-fill me-2 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}"
-                                data-post-id="{{ $post->id }}">
-                            <i class="bi bi-heart{{ $post->isLikedBy(auth()->user()) ? '-fill' : '' }}"></i> 
-                            <span class="like-text">{{ $post->isLikedBy(auth()->user()) ? 'Liked' : 'Like' }}</span>
-                            <span class="like-count ms-1">({{ $post->likes_count }})</span>
-                        </button>
+<button class="btn btn-light p-1 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" 
+        data-post-id="{{ $post->id }}">
+    <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+    <span class="like-count">{{ $post->likes->count() }}</span>
+</button>
+
+
                         @else
                         <button class="btn btn-light flex-fill me-2 require-auth" data-action="like">
                             <i class="bi bi-heart"></i> 
@@ -276,6 +277,7 @@
 }
 </style>
 @endpush
+@push('scripts')
 <script>
 function toggleComments(postId) {
     const commentsDiv = document.getElementById('comments-' + postId);
@@ -340,77 +342,43 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 });
 
-// Like functionality
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.like-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const postId = this.dataset.postId;
-            const icon = this.querySelector('i');
-            const likeText = this.querySelector('.like-text');
-            const likeCount = this.querySelector('.like-count');
-            const statsLikeCount = document.querySelector(`#post-${postId} .stats-like-count`);
-            
-            console.log('Like button clicked for post:', postId);
-            
-            // Get CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]');
-            if (!csrfToken) {
-                console.error('CSRF token not found');
-                return;
-            }
-            
-            fetch(`/posts/${postId}/toggle-like`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data);
-                
-                if (data.success) {
-                    // Update button appearance
-                    if (data.liked) {
-                        this.classList.add('text-danger');
-                        icon.classList.remove('bi-heart');
-                        icon.classList.add('bi-heart-fill');
-                        if (likeText) likeText.textContent = 'Liked';
-                    } else {
-                        this.classList.remove('text-danger');
-                        icon.classList.remove('bi-heart-fill');
-                        icon.classList.add('bi-heart');
-                        if (likeText) likeText.textContent = 'Like';
-                    }
-                    
-                    // Update like count in button
-                    if (likeCount) {
-                        likeCount.textContent = `(${data.likes_count})`;
-                    }
-                    
-                    // Update like count in stats section
-                    if (statsLikeCount) {
-                        if (data.likes_count > 0) {
-                            statsLikeCount.innerHTML = `<i class="bi bi-heart-fill text-danger me-1"></i> <span>${data.likes_count} ${data.likes_count == 1 ? 'like' : 'likes'}</span>`;
-                        } else {
-                            statsLikeCount.innerHTML = `<span class="text-muted">No likes yet</span>`;
-                        }
-                    }
-                } else {
-                    console.error('Server returned error:', data);
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
-        });
-    });
-});
+// // Like functionality - Fixed version
+// document.addEventListener('DOMContentLoaded', function() {
+//     document.querySelectorAll('.like-btn').forEach(button => {
+//         button.addEventListener('click', function(e) {
+//             e.preventDefault();
+
+//             const postId = this.dataset.postId;
+//             const icon = this.querySelector('i');
+//             const countSpan = this.querySelector('span');
+//             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+//             fetch(`/posts/${postId}/toggle-like`, {
+//                 method: 'POST',
+//                 headers: {
+//                     'X-CSRF-TOKEN': csrfToken,
+//                     'Accept': 'application/json'
+//                 }
+//             })
+//             .then(res => res.json())
+//             .then(data => {
+//                 if (data.success) {
+//                     if (data.liked) {
+//                         this.classList.add('text-danger');
+//                         icon.classList.remove('bi-heart');
+//                         icon.classList.add('bi-heart-fill');
+//                     } else {
+//                         this.classList.remove('text-danger');
+//                         icon.classList.remove('bi-heart-fill');
+//                         icon.classList.add('bi-heart');
+//                     }
+//                     countSpan.textContent = data.likes_count;
+//                 }
+//             });
+//         });
+//     });
+// });
 
 </script>
+@endpush
 @endsection
