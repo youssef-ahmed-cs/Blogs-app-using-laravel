@@ -1,4 +1,3 @@
-@vite(['resources/css/app.css', 'resources/js/app.js'])
 
 <!DOCTYPE html>
 <html lang="en">
@@ -297,18 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (dropdownToggle) {
         console.log('Dropdown toggle found');
         
-        dropdownToggle.addEventListener('click', function(e) {
-            console.log('Dropdown clicked');
-            e.preventDefault();
-            
-            const dropdownMenu = this.nextElementSibling;
-            if (dropdownMenu) {
-                dropdownMenu.classList.toggle('show');
-                console.log('Dropdown menu toggled');
-            }
-        });
-    } else {
-        console.error('Dropdown toggle not found!');
     }
 });
 
@@ -348,6 +335,5 @@ document.addEventListener('click', function(e) {
 });
 @endauth
 </script>
-
 </body>
 </html>
