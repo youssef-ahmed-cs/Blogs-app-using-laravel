@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/{user}/cover-upload', [ProfileController::class, 'uploadCover'])->name('profile.cover.upload');
+    Route::post('/profile/{user}/avatar-upload', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar.upload');
     
     // Placeholder routes for non-implemented features
  Route::get('/notifications', [NotificationController::class, 'index'])
