@@ -24,7 +24,7 @@ public function index()
                  ->latest()
                  ->paginate(10);
 
-    return view('posts.index', compact('posts'));
+    return view('Posts.index', compact('posts'));
 }
 
 
@@ -50,37 +50,25 @@ public function index()
         return view('Posts.create');
     }
 
-public function store(Request $request, Post $post)
-{
-    $request->validate([
-        'content' => 'required|string|max:500',
-        'parent_id' => 'nullable|exists:comments,id'
-    ]);
-
-    $comment = $post->comments()->create([
-        'user_id' => auth()->id(),
-        'content' => $request->content,
-        'parent_id' => $request->parent_id,
-    ]);
-
-    // إذا كان طلب AJAX
-    if($request->ajax()){
-        return response()->json([
-            'status' => 'success',
-            'comment' => [
-                'id' => $comment->id,
-                'content' => $comment->content,
-                'user_name' => $comment->user->name,
-                'user_image' => $comment->user->profile?->profile_image
-                                 ? asset('storage/'.$comment->user->profile->profile_image)
-                                 : asset('images/default-avatar.png'),
-                'user_profile' => route('profile.public', $comment->user->id)
-            ]
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image_post'  => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
-    }
 
-    return redirect()->back();
-}
+        Post::create([
+            'user_id'    => auth()->id(),
+            'title'      => $request->title,
+            'description'=> $request->description,
+            'image_post' => $request->hasFile('image_post')
+                ? $request->file('image_post')->store('posts', 'public')
+                : null,
+        ]);
+
+        return redirect()->back()->with('success', 'تم نشر البوست بنجاح 🎉');
+    }
 
 
     public function edit(Post $post)
