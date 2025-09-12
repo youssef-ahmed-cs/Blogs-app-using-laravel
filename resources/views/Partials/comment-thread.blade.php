@@ -33,7 +33,7 @@
         @if($comment->replies)
         <div class="reply-thread mt-2 ms-4">
             @foreach($comment->replies as $reply)
-                @include('partials.comment-thread', ['comment' => $reply])
+                @include('Partials.comment-thread', ['comment' => $reply])
             @endforeach
         </div>
         @endif

@@ -27,6 +27,23 @@
     border-left: 4px solid #0d6efd;
     background-color: #f8f9ff;
 }
+
+/* Loading indicator */
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Add fade in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.notification-item {
+    animation: fadeIn 0.3s ease;
+}
 </style>
 
 <div class="container mt-4">
@@ -40,48 +57,20 @@
     </div>
 
     @if($notifications->count())
-        <div class="list-group">
-            @foreach($notifications as $notification)
-                @php
-                    $message = $notification->data['message'] ?? 'تم التفاعل على البوست';
-                    $postId = $notification->data['post_id'] ?? null;
-                    $isUnread = !$notification->read_at;
-                @endphp
-                <div class="list-group-item notification-item {{ $isUnread ? 'unread' : '' }}" 
-                     data-id="{{ $notification->id }}" 
-                     data-post-id="{{ $postId }}">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            @if($postId)
-                                <a href="{{ route('posts.show', $postId) }}" 
-                                   class="notification-link {{ $isUnread ? 'fw-bold' : '' }}" 
-                                   style="display: block; padding: 0;">
-                                    {{ $message }}
-                                </a>
-                            @else
-                                <div class="{{ $isUnread ? 'fw-bold' : '' }}">
-                                    {{ $message }}
-                                </div>
-                            @endif
-                            <small class="text-muted">
-                                <i class="bi bi-clock"></i> {{ $notification->created_at->diffForHumans() }}
-                            </small>
-                        </div>
-
-                        <div class="d-flex align-items-center">
-                            @if($isUnread)
-                                <span class="badge bg-primary rounded-pill me-2">New</span>
-                            @endif
-                            <button class="btn btn-sm btn-outline-danger delete-notification" 
-                                    data-id="{{ $notification->id }}" 
-                                    title="Delete notification">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
+        <div class="list-group" id="notifications-container">
+            @include('notifications.partials.notification-items')
         </div>
+        
+        <!-- Loading spinner for infinite scroll -->
+        <div class="loading-spinner" id="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="mt-2">Loading more notifications...</div>
+        </div>
+        
+        <!-- Hidden input to store next page URL -->
+        <input type="hidden" id="next-page" value="{{ $notifications->nextPageUrl() }}">
     @else
         <div class="text-center py-5">
             <i class="bi bi-bell-slash fs-1 text-muted mb-3"></i>
@@ -264,5 +253,68 @@ function updateNotificationBadge() {
         }
     }
 }
+
+// Infinite scroll functionality
+let isLoading = false;
+let hasMorePages = !!document.getElementById('next-page')?.value;
+
+// Function to load more notifications
+function loadMoreNotifications() {
+    if (isLoading || !hasMorePages) return;
+    
+    isLoading = true;
+    const nextPageUrl = document.getElementById('next-page').value;
+    const loadingSpinner = document.getElementById('loading-spinner');
+    loadingSpinner.style.display = 'block';
+    
+    fetch(nextPageUrl, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const notificationsContainer = document.getElementById('notifications-container');
+        
+        // Append new notifications
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = data.notifications;
+        
+        // Add each child element individually to preserve event handlers
+        while (tempContainer.firstChild) {
+            notificationsContainer.appendChild(tempContainer.firstChild);
+        }
+        
+        // Update next page URL or mark as no more pages
+        if (data.nextPage) {
+            document.getElementById('next-page').value = data.nextPage;
+        } else {
+            hasMorePages = false;
+        }
+        
+        isLoading = false;
+        loadingSpinner.style.display = 'none';
+    })
+    .catch(error => {
+        console.error('Error loading more notifications:', error);
+        isLoading = false;
+        loadingSpinner.style.display = 'none';
+    });
+}
+
+// Check if scroll is near bottom to load more notifications
+window.addEventListener('scroll', () => {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+        loadMoreNotifications();
+    }
+});
+
+// Add event delegation for new notification items added by infinite scroll
+document.addEventListener('click', function(e) {
+    const notificationLink = e.target.closest('.notification-link');
+    const deleteBtn = e.target.closest('.delete-notification');
+    
+    // Handle existing click events...
+});
 </script>
 @endsection

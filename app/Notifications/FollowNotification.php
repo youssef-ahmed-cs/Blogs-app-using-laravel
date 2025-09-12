@@ -26,8 +26,11 @@ class FollowNotification extends Notification implements ShouldQueue
     public function toArray($notifiable): array
     {
         return [
+            'user_id' => $this->follower->id,
+            'user_name' => $this->follower->name,
             'follower_id' => $this->follower->id,
             'follower_name' => $this->follower->name,
+            'type' => 'follow',
             'message' => $this->follower->name . ' started following you',
             'created_at' => now(),
         ];
