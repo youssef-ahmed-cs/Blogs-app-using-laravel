@@ -1,4 +1,4 @@
-@extends('Layouts.app')
+@extends('layouts.app')
 
 @section('title', $user->name . ' - Public Profile')
 
@@ -194,41 +194,48 @@
     @endif
 
     <div class="card border-0 shadow-sm mb-5">
-<!-- Cover Header -->
-<div class="fb-cover-container">
-    <img id="coverImage" 
-src="{{ asset('storage/'.$user->cover_photo) }}"          alt="Cover" 
-         class="fb-cover-img">
+        <!-- Cover Header -->
+        <div class="fb-cover-container">
+            @if($user->profile?->cover_image)
+                <img id="coverImage" class="fb-cover-img" 
+                     src="{{ asset('storage/'.$user->profile->cover_image) }}" 
+                     alt="Cover">
+            @else
+                <div class="fb-cover-img d-flex align-items-center justify-content-center"
+                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="text-white text-center">
+                        <i class="bi bi-image fs-1 mb-2"></i>
+                        <p class="mb-0">No cover photo</p>
+                    </div>
+                </div>
+            @endif
 
-    <div class="fb-cover-gradient"></div>
+            <div class="fb-cover-gradient"></div>
 
-    <div class="fb-cover-action">
-        @if(auth()->check() && auth()->id() === $user->id)
-            <form action="{{ route('profile.cover.upload', $user->id) }}" 
-                  method="POST" 
-                  enctype="multipart/form-data" 
-                  class="d-inline">
-                @csrf
-                <label class="fb-btn-img" style="cursor:pointer;">
-                    <i class="bi bi-camera"></i> 
-                    {{ $user->profile?->cover_image ? 'Change Cover Photo' : 'Add Cover Photo' }}
-                    <input type="file" name="cover_image" accept="image/*" onchange="this.form.submit()" style="display:none;">
-                </label>
-            </form>
-        @endif
-    </div>
-</div>
-
-
-
+            <div class="fb-cover-action">
+                @if(auth()->check() && auth()->id() === $user->id)
+                    <form id="coverUploadForm"
+                          action="{{ route('profile.cover.upload', $user->id) }}"
+                          method="POST"
+                          enctype="multipart/form-data"
+                          class="d-inline">
+                        @csrf
+                        <label class="fb-btn-img" style="cursor:pointer;" id="coverUploadBtn" for="coverInput">
+                            <i class="bi bi-camera"></i> {{ $user->profile?->cover_image ? 'Change Cover Photo' : 'Add Cover Photo' }}
+                        </label>
+                        <input type="file" id="coverInput" name="cover_image" accept="image/*" style="display:none;">
+                    </form>
+                @endif
+            </div>
+        </div>
 
         <!-- Profile Section -->
         <div class="fb-profile-section">
             <!-- Profile Avatar -->
             <div class="fb-profile-avatar-container">
                 <img class="fb-profile-avatar"
-                    src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : 'https://via.placeholder.com/130x130.png?text='.substr($user->name, 0, 1) }}"
-                    alt="Profile">
+                     src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : '/images/default-avatar.png' }}"
+                     alt="Profile">
                 @if(auth()->check() && auth()->id() === $user->id)
                     <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
                         @csrf
@@ -243,7 +250,7 @@ src="{{ asset('storage/'.$user->cover_photo) }}"          alt="Cover"
             <!-- Profile Details -->
             <div class="fb-profile-details">
                 <div class="fb-profile-name">{{ $user->name }}</div>
-                <div class="fb-profile-username text-muted mb-3">{{ '@' . ($user->username ?? strtolower(str_replace(' ', '', $user->name))) }}</div>
+                <div class="fb-profile-username text-muted mb-3">{{ '@' . strtolower(str_replace(' ', '', $user->name ?? 'User')) }}</div>
                 
                 <div class="fb-profile-actions">
                     <!-- Followers Button -->
@@ -427,13 +434,13 @@ src="{{ asset('storage/'.$user->cover_photo) }}"          alt="Cover"
             @foreach($followers as $follower)
               <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center">
-                    <img src="{{ $follower->profile?->profile_image ? asset('storage/'.$follower->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text='.substr($follower->name, 0, 1) }}" 
+                    <img src="{{ $follower->profile?->profile_image ? asset('storage/'.$follower->profile->profile_image) : '/images/default-avatar.png' }}" 
                          width="40" height="40" class="rounded-circle me-3">
                     <div>
                         <a href="{{ route('profile.public', $follower->id) }}" class="text-decoration-none fw-semibold">
                             {{ $follower->name }}
                         </a>
-                        <div class="text-muted small">{{ '@' . ($follower->username ?? strtolower(str_replace(' ', '', $follower->name))) }}</div>
+                        <div class="text-muted small">{{ '@' . strtolower(str_replace(' ', '', $follower->name ?? 'User')) }}</div>
                     </div>
                 </div>
                 
@@ -476,13 +483,13 @@ src="{{ asset('storage/'.$user->cover_photo) }}"          alt="Cover"
             @foreach($followings as $following)
               <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center">
-                    <img src="{{ $following->profile?->profile_image ? asset('storage/'.$following->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text='.substr($following->name, 0, 1) }}" 
+                    <img src="{{ $following->profile?->profile_image ? asset('storage/'.$following->profile->profile_image) : '/images/default-avatar.png' }}" 
                          width="40" height="40" class="rounded-circle me-3">
                     <div>
                         <a href="{{ route('profile.public', $following->id) }}" class="text-decoration-none fw-semibold">
                             {{ $following->name }}
                         </a>
-                        <div class="text-muted small">{{ '@' . ($following->username ?? strtolower(str_replace(' ', '', $following->name))) }}</div>
+                        <div class="text-muted small">{{ '@' . strtolower(str_replace(' ', '', $following->name ?? 'User')) }}</div>
                     </div>
                 </div>
                 
@@ -514,21 +521,43 @@ src="{{ asset('storage/'.$user->cover_photo) }}"          alt="Cover"
   </div>
 </div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="/css/bootstrap-icons.css">
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const coverForm = document.querySelector('form[action*="cover.upload"]');
-    if (coverForm) {
-        coverForm.addEventListener('submit', function() {
-            const label = coverForm.querySelector('label');
-            if (label) {
-                label.innerHTML = '<i class="bi bi-spinner-border"></i> Uploading...';
+    // Handle cover image upload
+    const coverInput = document.getElementById('coverInput');
+    const coverForm = document.getElementById('coverUploadForm');
+    const coverBtn = document.getElementById('coverUploadBtn');
+    let isUploading = false;
+
+    console.log('Cover elements found:', {
+        coverInput: !!coverInput,
+        coverForm: !!coverForm,
+        coverBtn: !!coverBtn
+    });
+
+    if (coverInput && coverForm) {
+        coverInput.addEventListener('change', function(e) {
+            console.log('File selected:', this.files.length);
+            
+            if (this.files.length > 0 && !isUploading) {
+                console.log('Starting upload...');
+                isUploading = true;
+                
+                // Show uploading state
+                const originalContent = coverBtn.innerHTML;
+                coverBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-1"></i>Uploading...';
+                coverBtn.style.pointerEvents = 'none';
+                
+                // Submit form
+                console.log('Submitting form...');
+                coverForm.submit();
             }
         });
+    } else {
+        console.log('Cover upload elements not found');
     }
 });
 </script>
-
-
-
 @endsection
