@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     
     <style>
+        /* Global styles */
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         /* Ensure dropdown is visible and properly styled */
         .navbar-nav .dropdown-menu {
             display: none; /* Hidden by default */
@@ -50,12 +55,80 @@
 
         /* Dropdown header styling */
         .navbar-nav .dropdown-header {
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 8px 8px 0 0;
-            margin: 0 8px 8px 8px;
+            padding: 0.5rem 1.5rem;
+            color: #6c757d;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            opacity: 0.8;
+            margin-bottom: 0;
+        }
+        
+        /* Facebook-style post cards */
+        .card {
+            border-radius: 8px;
             border: none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background-color: white;
+            padding: 12px 15px;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        /* Action buttons styling */
+        .btn-light {
+            background-color: #f0f2f5;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            padding: 8px 16px;
+            transition: background-color 0.2s;
+            flex: 1;
+        }
+        
+        .btn-light:hover {
+            background-color: #e4e6e9;
+        }
+        
+        .btn-light.active {
+            background-color: #e7f3ff;
+            color: #1877f2;
+        }
+        
+        /* Action buttons container */
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-top: 1px solid #f0f2f5;
+            margin-top: 8px;
+        }
+        
+        .post-actions .btn {
+            flex: 1;
+            margin: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .post-actions .btn i {
+            margin-right: 6px;
+            font-size: 1.1rem;
         }
 
         .navbar-nav .dropdown-item {

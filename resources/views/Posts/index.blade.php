@@ -2,24 +2,68 @@
 
 @section('title', 'Home - FaceBog')
 
+@push('styles')
+<style>
+    /* Custom styles for post index page */
+    .post-image-container {
+        margin: 0 -15px;
+        overflow: hidden;
+        max-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    
+    .post-image-container img {
+        object-fit: cover;
+        width: 100%;
+        max-height: 500px;
+    }
+    
+    .create-post-card {
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 20px;
+    }
+    
+    .create-post-card:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .comment-input {
+        background-color: #f0f2f5;
+        border-radius: 20px !important;
+    }
+    
+    .like-btn.text-danger {
+        color: #ff4d4f !important;
+    }
+    
+    .like-btn.text-danger i {
+        transform: scale(1.1);
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="container">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-lg-7 col-md-10">
 @auth
 <!-- Create Post Modal Trigger -->
-<div class="card mb-4">
-    <div class="card-body d-flex align-items-center">
+<div class="card mb-4 create-post-card shadow-sm">
+    <div class="card-body d-flex align-items-center py-3">
         <img src="{{ auth()->user()->profile?->profile_image 
             ? asset('storage/'.auth()->user()->profile->profile_image) 
             : 'https://via.placeholder.com/40x40.png?text=U' }}" 
-            alt="Profile" width="40" height="40" class="rounded-circle me-3">
+            alt="Profile" width="42" height="42" class="rounded-circle me-3">
 
         <div class="flex-grow-1">
-            <button class="form-control text-start text-muted p-3" 
-                    style="border-radius: 25px; cursor: pointer;"
+            <button class="form-control text-start text-muted py-2 px-3" 
+                    style="border-radius: 25px; cursor: pointer; background-color: #f0f2f5; border-color: transparent;"
                     data-bs-toggle="modal" data-bs-target="#createPostModal">
-                ماذا تفكر، {{ auth()->user()->name }}؟
+                What's on your mind, {{ auth()->user()->name }}?
             </button>
         </div>
     </div>
@@ -64,8 +108,8 @@
 
             <!-- Posts Feed -->
             @forelse($posts as $post)
-            <div class="card mb-4" id="post-{{ $post->id }}">
-                <div class="card-header bg-white border-0 pb-0">
+            <div class="card mb-4 shadow-sm" id="post-{{ $post->id }}">
+                <div class="card-header bg-white border-0">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
                             <img src="{{ $post->user->profile?->profile_image ? asset('storage/'.$post->user->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text=U' }}" 
@@ -108,25 +152,27 @@
                     </div>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body pb-1">
                     @if($post->title)
-                    <h5>{{ $post->title }}</h5>
+                    <h5 class="fw-bold mb-2">{{ $post->title }}</h5>
                     @endif
-                    <p>{{ $post->description }}</p>
+                    <p class="mb-3">{{ $post->description }}</p>
 
                     @if($post->image_post)
-                    <img src="{{ asset('storage/'.$post->image_post) }}" 
-                         class="img-fluid rounded mb-3" alt="Post Image">
+                    <div class="post-image-container">
+                        <img src="{{ asset('storage/'.$post->image_post) }}" 
+                             class="img-fluid w-100 rounded" alt="Post Image">
+                    </div>
                     @endif
 
                     <!-- Post Stats -->
-                    <div class="d-flex justify-content-between align-items-center text-muted mb-3">
+                    <div class="d-flex justify-content-between align-items-center text-muted my-2 px-2 py-1">
                         <div class="stats-like-count">
                             @if(($post->likes_count ?? 0) > 0)
                                 <i class="bi bi-heart-fill text-danger me-1"></i> 
                                 <span>{{ $post->likes_count }} {{ $post->likes_count == 1 ? 'like' : 'likes' }}</span>
                             @else
-                                <span class="text-muted">No likes yet</span>
+                                <span class="text-muted small">Be the first to like this</span>
                             @endif
                         </div>
                         <div>
@@ -138,36 +184,35 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="d-flex border-top pt-2">
+                    <div class="post-actions d-flex border-top pt-2 px-1 py-1">
                         @auth
-<button class="btn btn-light p-1 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" 
-        data-post-id="{{ $post->id }}">
-    <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
-    <span class="like-count">{{ $post->likes->count() }}</span>
-</button>
-
-
+                        <button class="btn btn-light like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" 
+                                data-post-id="{{ $post->id }}">
+                            <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+                            <span>Like</span> 
+                            <span class="like-count ms-1">{{ $post->likes->count() > 0 ? '('.$post->likes->count().')' : '' }}</span>
+                        </button>
                         @else
-                        <button class="btn btn-light flex-fill me-2 require-auth" data-action="like">
+                        <button class="btn btn-light require-auth" data-action="like">
                             <i class="bi bi-heart"></i> 
                             <span>Like</span>
-                            <span class="like-count ms-1">({{ $post->likes_count }})</span>
+                            <span class="like-count ms-1">{{ $post->likes_count > 0 ? '('.$post->likes_count.')' : '' }}</span>
                         </button>
                         @endauth
 
-                        <button class="btn btn-light flex-fill me-2 {{ !auth()->check() ? 'require-auth' : '' }}" 
+                        <button class="btn btn-light {{ !auth()->check() ? 'require-auth' : '' }}" 
                                 onclick="toggleComments({{ $post->id }})"
                                 data-action="comment">
                             <i class="bi bi-chat"></i> Comment
                         </button>
 
-                        <a href="{{ route('posts.show', $post) }}" class="btn btn-light flex-fill">
+                        <a href="{{ route('posts.show', $post) }}" class="btn btn-light">
                             <i class="bi bi-eye"></i> View
                         </a>
                     </div>
 
                     <!-- Comments Section -->
-                    <div id="comments-{{ $post->id }}" class="mt-3 comments-container p-3 border-top" style="display: none;">
+                    <div id="comments-{{ $post->id }}" class="comments-container p-3 border-top bg-light" style="display: none;">
                         @auth
                         <form action="{{ route('comments.store', $post) }}" method="POST" class="mb-3">
                             @csrf
@@ -208,22 +253,26 @@
                 </div>
             </div>
             @empty
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-body text-center py-5">
-                    <i class="bi bi-chat-dots fs-1 text-muted mb-3"></i>
-                    <h5>No posts yet</h5>
-                    <p class="text-muted">Be the first to share something!</p>
+                    <i class="bi bi-journal-richtext fs-1 text-primary mb-4"></i>
+                    <h4 class="fw-bold">No posts yet</h4>
+                    <p class="text-muted mb-4">When you or your friends post content, you'll see it here.</p>
                     @auth
-                    <a href="{{ route('posts.create') }}" class="btn btn-primary">Create Post</a>
+                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#createPostModal" class="btn btn-primary px-4 py-2">
+                        <i class="bi bi-plus-lg me-2"></i> Create Your First Post
+                    </a>
                     @else
-                    <a href="{{ route('register') }}" class="btn btn-primary">Join FaceBog</a>
+                    <a href="{{ route('register') }}" class="btn btn-primary px-4 py-2">
+                        <i class="bi bi-person-plus me-2"></i> Join FaceBog
+                    </a>
                     @endauth
                 </div>
             </div>
             @endforelse
 
             <!-- Pagination -->
-            <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-center my-4">
                 {{ $posts->links() }}
             </div>
         </div>
