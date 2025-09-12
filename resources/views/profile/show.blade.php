@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('Layouts.app')
 
 @section('title', 'My Profile')
 
@@ -14,7 +14,6 @@
 
         <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @method('PUT')
 
             <div class="mb-3 text-center">
 @if($user->profile && $user->profile->profile_image)

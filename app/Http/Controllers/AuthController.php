@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
-    public function register()
+    public function registerForm()
     {
         return view('Auth.register');
     }
@@ -40,7 +40,7 @@ class AuthController extends Controller
         return to_route('posts.index')->with('success', 'You have been logged out');
     }
 
-    public function login(Request $request)
+    public function loginForm()
     {
         return view('Auth.login');
     }

@@ -2,24 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LikeManagement\StoreLikeRequest;
-use App\Http\Requests\LikeManagement\UpdateLikeRequest;
-use App\Models\Like;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Post;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Like;
+use App\Notifications\PostInteraction;
 
 class LikeController extends Controller
 {
-    public function toggleLike(Post $post): RedirectResponse
+    public function toggleLike(Post $post)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        if ($post->isLikedBy($user)) {
-            $post->likes()->where('user_id', $user->id)->delete();
+        // Check if user already liked this post
+        $existingLike = Like::where('post_id', $post->id)
+                           ->where('user_id', $user->id)
+                           ->first();
+
+        if ($existingLike) {
+            // Unlike the post
+            $existingLike->delete();
+            $status = 'unliked';
         } else {
-            $post->likes()->create(['user_id' => $user->id]);
+            // Like the post
+            Like::create([
+                'post_id' => $post->id,
+                'user_id' => $user->id
+            ]);
+            $status = 'liked';
+
+            // Send notification to post owner (if not the same user)
+            if ($post->user_id !== $user->id) {
+                $post->user->notify(new PostInteraction($user, $post, 'like'));
+            }
         }
-        return back();
+
+        // Get updated likes count
+        $likesCount = Like::where('post_id', $post->id)->count();
+
+        return response()->json([
+            'status' => $status,
+            'likesCount' => $likesCount,
+        ]);
     }
 }

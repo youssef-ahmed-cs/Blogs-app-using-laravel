@@ -1,141 +1,186 @@
 @extends('Layouts.app')
 
-@section('title', 'Show')
+@section('title', 'عرض البوست')
 
 @section('content')
+<div class="container mt-4">
 
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <a href="{{ route('posts.index') }}" class="btn btn-secondary me-2">Back to Posts</a>
-                <a href="{{ route('posts.edit', $posts->id) }}" class="btn btn-primary me-2">Edit</a>
-            </div>
-            <form action="{{ route('posts.destroy', $posts->id) }}" method="POST" class="d-inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger"
-                        onclick="return confirm('Are you sure you want to delete this post?')">
-                    Delete
-                </button>
-            </form>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Post Info</h5>
-                    </div>
-                    <div class="card-body">
-                        <h4 class="card-title">{{ $posts->title }}</h4>
-                        <p class="card-text">{{ $posts->description }}</p>
-
-                        {{-- Improved image handling --}}
-                        @php
-                            $imagePath = $posts->image ?? $posts->image_path ?? null;
-                        @endphp
-
-                        @if($imagePath)
-                            <div class="mb-3">
-                                <img
-                                    src="{{ asset('storage/' . $imagePath) }}"
-                                    alt="{{ $posts->title }} image"
-                                    class="img-fluid rounded border"
-                                    style="max-height: 400px; object-fit: cover; width: 100%;"
-                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                <div class="alert alert-warning" style="display: none;">
-                                    <i class="fas fa-exclamation-triangle"></i> Image could not be loaded
-                                </div>
-                            </div>
-                        @endif
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <p class="text-muted mb-2">Views: {{ $posts->views }}</p>
-                                <form action="{{ route('posts.toggleLike', $posts->id) }}" method="POST" class="mt-2">
-                                    @csrf
-                                    <button type="submit"
-                                            class="btn btn-sm {{ $posts->isLikedBy(auth()->user()) ? 'btn-danger' : 'btn-outline-primary' }}">
-                                        {{ $posts->isLikedBy(auth()->user()) ? 'Unlike' : 'Like' }}
-                                    </button>
-                                    <span class="ms-2">{{ $posts->likes()->count() }} Likes</span>
-                                </form>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="border-start ps-3">
-                                    <h6 class="text-muted mb-2">Created by:</h6>
-                                    <p class="mb-1"><b>{{ $posts->user_creator->name ?? 'NOT FOUND' }}</b></p>
-                                    <p class="mb-1 text-muted">{{ $posts->user_creator->email ?? 'NOT FOUND' }}</p>
-                                    <p class="mb-0 text-muted small">{{ $posts->created_at->format('Y-m-d H:i') }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if($posts->likes()->count())
-                            <div class="mt-3 pt-3 border-top">
-                                <span class="fw-bold">Liked by:</span>
-                                @foreach($posts->likes as $like)
-                                    <span
-                                        class="badge bg-info text-dark me-1">{{ $like->user->name ?? 'Unknown' }}</span>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
+    <!-- البوست -->
+    <div class="post-card card shadow-sm mb-4">
+        <div class="card-body">
+            <!-- الهيدر -->
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ route('profile.public', $post->user->id) }}">
+                    <img src="{{ $post->user->profile?->profile_image 
+                        ? asset('storage/' . $post->user->profile->profile_image) 
+                        : asset('images/default-avatar.png') }}" 
+                         class="rounded-circle me-2" width="50" height="50" alt="User Avatar">
+                </a>
+                <div>
+                    <a href="{{ route('profile.public', $post->user->id) }}" class="fw-bold text-dark text-decoration-none">
+                        {{ $post->user->name ?? 'مستخدم محذوف' }}
+                    </a><br>
+                    <small class="text-muted">{{ $post->created_at->diffForHumans() }}</small>
                 </div>
             </div>
-        </div>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light">
-                <h6 class="mb-0">Comments</h6>
-            </div>
-            <div class="card-body">
-                @if($posts->comments->isEmpty())
-                    <p class="text-muted">No comments yet.</p>
-                @else
-                    @foreach($posts->comments as $comment)
-                        <div class="border rounded p-3 mb-3 bg-light">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <strong>{{ $comment->user->name ?? 'Anonymous' }}</strong>
-                                <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                            </div>
-                            <p class="mb-2">{{ $comment->content }}</p>
-                            @if(auth()->id() === $comment->user_id)
-                                <form action="{{ route('comments.destroy', $comment->id) }}" method="POST"
-                                      class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Are you sure you want to delete this comment?')">
-                                        Delete
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                    @endforeach
-                @endif
+            <!-- نص البوست -->
+            @if($post->title)
+                <h5>{{ $post->title }}</h5>
+            @endif
+            <p class="mb-2">{{ $post->description }}</p>
 
-                <form action="{{ route('posts.comments.store', $posts->id) }}" method="POST" class="mt-3">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="content" class="form-label fw-bold">Add a Comment</label>
-                        <textarea class="form-control" id="content" name="content" rows="3"
-                                  placeholder="Write your comment..."></textarea>
-                        <input type="hidden" name="post_id" value="{{ $posts->id }}">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit Comment</button>
-                </form>
+            <!-- صورة البوست -->
+            @if($post->image_post)
+                <div class="post-img mb-3 text-center">
+                    <img src="{{ asset('storage/' . $post->image_post) }}" class="img-fluid rounded" style="max-height:400px; object-fit:cover;">
+                </div>
+            @endif
+
+            <!-- أزرار الإعجاب والتعليقات والمشاركة -->
+            <div class="d-flex justify-content-around border-top pt-2 text-muted post-actions">
+                <button class="btn btn-light p-1 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" data-post-id="{{ $post->id }}">
+                    <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i> <span>{{ $post->likes->count() }}</span>
+                </button>
+                <button class="btn btn-light p-1">
+                    <i class="bi bi-chat"></i> {{ $post->comments->count() }}
+                </button>
+                <button class="btn btn-light p-1 share-btn">
+                    <i class="bi bi-share"></i> مشاركة
+                </button>
             </div>
         </div>
     </div>
+
+    <!-- التعليقات -->
+    <div class="card shadow-sm comment-section mb-4">
+        <div class="card-header fw-bold">💬 التعليقات ({{ $post->comments->count() }})</div>
+        <div class="card-body">
+
+            <!-- إضافة تعليق جديد -->
+            @auth
+            <form action="{{ route('comments.store', $post) }}" method="POST" class="mb-3 new-comment-form">
+                @csrf
+                <div class="d-flex">
+                    <img src="{{ auth()->user()->profile?->profile_image 
+                        ? asset('storage/'.auth()->user()->profile->profile_image) 
+                        : asset('images/default-avatar.png') }}" 
+                         alt="Profile" width="35" height="35" class="rounded-circle me-2">
+                    <input type="text" name="content" class="form-control rounded-pill" placeholder="اكتب تعليقك..." required>
+                    <button type="submit" class="btn btn-primary btn-sm ms-2">إضافة</button>
+                </div>
+            </form>
+            @endauth
+
+            <!-- عرض التعليقات مع الردود -->
+            <div class="comments-list">
+@foreach($post->comments as $comment)
+<div class="comment-item mb-3 p-2 rounded shadow-sm">
+    <div class="d-flex align-items-start">
+        <a href="{{ route('profile.public', $comment->user->id) }}">
+            <img src="{{ $comment->user->profile?->profile_image 
+                ? asset('storage/' . $comment->user->profile->profile_image) 
+                : asset('images/default-avatar.png') }}" 
+                 class="rounded-circle me-2" width="40" height="40">
+        </a>
+        <div class="flex-grow-1">
+            <a href="{{ route('profile.public', $comment->user->id) }}" class="fw-bold text-dark text-decoration-none">
+                {{ $comment->user->name }}
+            </a>
+            <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+            <p class="mb-1">{{ $comment->content }}</p>
+
+            @auth
+            <button class="btn btn-sm btn-link text-primary mt-1 reply-btn">Reply</button>
+
+            <form action="{{ route('comments.store', $post) }}" method="POST" class="reply-form d-none mt-2">
+                @csrf
+                <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                <div class="d-flex">
+                    <input type="text" name="content" class="form-control form-control-sm rounded-pill me-2" placeholder="اكتب رد..." required>
+                    <button type="submit" class="btn btn-primary btn-sm">Send</button>
+                </div>
+            </form>
+
+            <div class="reply-thread ms-4 mt-2"></div>
+            @endauth
+        </div>
+    </div>
+</div>
+@endforeach
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
 @endsection
+
+@push('styles')
+<style>
+.comment-item { border-left: 3px solid #eee; padding-left: 10px; margin-bottom: 10px; }
+.reply-thread .comment-item { border-left: 2px solid #ddd; margin-top: 8px; padding-left: 12px; }
+.reply-btn { cursor: pointer; transition: color 0.2s; }
+.reply-btn:hover { color: #0d6efd; }
+.comment-section .card-body { max-height: 600px; overflow-y: auto; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const form = btn.closest('.comment-item').querySelector('.reply-form');
+            form.classList.toggle('d-none');
+            form.querySelector('input[name="content"]').focus();
+        });
+    });
+
+    document.querySelectorAll('.reply-form').forEach(form => {
+        form.addEventListener('submit', function(e){
+            e.preventDefault();
+            const input = form.querySelector('input[name="content"]');
+            if(!input.value.trim()) return;
+
+            const postId = '{{ $post->id }}';
+            const parentId = form.querySelector('input[name="parent_id"]').value;
+
+            fetch(`/posts/${postId}/comments`, {
+                method: 'POST',
+                headers:{
+                    'X-CSRF-TOKEN':'{{ csrf_token() }}',
+                    'Accept':'application/json',
+                    'Content-Type':'application/json'
+                },
+                body: JSON.stringify({ content: input.value.trim(), parent_id: parentId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status==='success'){
+                    const div = document.createElement('div');
+                    div.classList.add('comment-item','p-2','rounded','shadow-sm','mt-2');
+                    div.innerHTML = `
+                        <a href="${data.comment.user_profile}">
+                            <img src="${data.comment.user_image}" class="rounded-circle me-2" width="32" height="32">
+                        </a>
+                        <div class="flex-grow-1">
+                            <a href="${data.comment.user_profile}" class="fw-bold text-dark text-decoration-none">
+                                ${data.comment.user_name}
+                            </a>
+                            <p class="mb-0">${data.comment.content}</p>
+                            <small class="text-muted">الآن</small>
+                        </div>
+                    `;
+                    form.closest('.comment-item').querySelector('.reply-thread').appendChild(div);
+                    input.value = '';
+                    form.classList.add('d-none');
+                }
+            });
+        });
+    });
+});
+
+</script>
+@endpush
