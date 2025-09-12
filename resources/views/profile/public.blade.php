@@ -1,4 +1,4 @@
-@extends('Layouts.app')
+@extends('layouts.app')
 
 @section('title', $user->name . ' - Public Profile')
 
@@ -164,16 +164,6 @@
             padding: 12px 16px;
         }
     }
-    
-    /* Alert auto-hide animation */
-    .alert {
-        transition: opacity 0.5s ease, transform 0.3s ease;
-    }
-    
-    .alert.fade-out {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
 </style>
 
 <div class="container">
@@ -224,19 +214,17 @@
 
             <div class="fb-cover-action">
                 @if(auth()->check() && auth()->id() === $user->id)
-                    <div class="d-inline">
-                        <label class="fb-btn-img" style="cursor:pointer;" id="coverUploadBtn" for="coverInput">
+                    <form id="coverUploadForm"
+                          action="{{ route('profile.cover.upload', $user->id) }}"
+                          method="POST"
+                          enctype="multipart/form-data"
+                          class="d-inline">
+                        @csrf
+                        <label class="fb-btn-img" style="cursor:pointer;">
                             <i class="bi bi-camera"></i> {{ $user->profile?->cover_image ? 'Change Cover Photo' : 'Add Cover Photo' }}
+                            <input type="file" id="coverInput" name="cover_image" accept="image/*" style="display:none;" onchange="this.form.submit()">
                         </label>
-                        <form id="coverUploadForm"
-                              action="{{ route('profile.cover.upload', $user->id) }}"
-                              method="POST"
-                              enctype="multipart/form-data"
-                              style="display: none;">
-                            @csrf
-                            <input type="file" id="coverInput" name="cover_image" accept="image/*" style="display:none;">
-                        </form>
-                    </div>
+                    </form>
                 @endif
             </div>
         </div>
@@ -249,11 +237,11 @@
                      src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : '/images/default-avatar.png' }}"
                      alt="Profile">
                 @if(auth()->check() && auth()->id() === $user->id)
-                    <form action="{{ route('profile.avatar.upload', $user->id) }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
+                    <form action="{{ route('profile.avatar.upload', $user) }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
                         @csrf
-                        <input type="file" name="profile_image" id="profileImageInput" accept="image/*">
+                        <input type="file" name="profile_image" id="profileImageInput" accept="image/*" onchange="submitAvatarForm()">
                     </form>
-                    <button onclick="document.getElementById('profileImageInput').click();" class="avatar-camera-btn" id="avatarCameraBtn">
+                    <button onclick="document.getElementById('profileImageInput').click();" class="avatar-camera-btn" id="avatarUploadBtn">
                         <i class="bi bi-camera"></i>
                     </button>
                 @endif
@@ -317,26 +305,7 @@
                     @endguest
 
                     <!-- Additional Action Buttons -->
-                    @auth
-                        @if(auth()->id() !== $user->id)
-                            <button class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-chat-dots"></i> Message
-                            </button>
-                            <div class="dropdown d-inline">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-flag"></i> Report User
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-person-x"></i> Block User
-                                    </a></li>
-                                </ul>
-                            </div>
-                        @endif
-                    @endauth
+
                 </div>
 
                 <!-- Profile Stats -->
@@ -536,70 +505,21 @@
 <link rel="stylesheet" href="/css/bootstrap-icons.css">
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide alert messages after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            if (alert && alert.parentNode) {
-                alert.classList.add('fade-out');
-                setTimeout(() => {
-                    if (alert.parentNode) {
-                        alert.remove();
-                    }
-                }, 500); // Wait for fade-out animation
-            }
-        }, 5000); // Hide after 5 seconds
-    });
-
-    // Handle cover image upload
-    const coverInput = document.getElementById('coverInput');
-    const coverForm = document.getElementById('coverUploadForm');
-    const coverBtn = document.getElementById('coverUploadBtn');
+function submitAvatarForm() {
+    const form = document.getElementById('avatarForm');
+    const btn = document.getElementById('avatarUploadBtn');
+    const fileInput = document.getElementById('profileImageInput');
     
-    if (coverInput && coverForm && coverBtn) {
-        let uploadStarted = false;
+    // Check if a file was selected
+    if (fileInput.files.length > 0) {
+        // Show loading state
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+        btn.disabled = true;
         
-        coverInput.addEventListener('change', function(e) {
-            if (this.files.length > 0 && !uploadStarted) {
-                uploadStarted = true;
-                
-                console.log('Starting single upload...');
-                
-                // Show loading state
-                coverBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-1"></i>Uploading...';
-                coverBtn.style.pointerEvents = 'none';
-                
-                // Append the file input to the form and submit
-                coverForm.appendChild(this);
-                coverForm.submit();
-            }
-        });
+        // Submit the form
+        form.submit();
     }
-
-    // Handle profile image upload
-    const profileInput = document.getElementById('profileImageInput');
-    const profileForm = document.getElementById('avatarForm');
-    const profileBtn = document.getElementById('avatarCameraBtn');
-    
-    if (profileInput && profileForm && profileBtn) {
-        let profileUploadStarted = false;
-        
-        profileInput.addEventListener('change', function(e) {
-            if (this.files.length > 0 && !profileUploadStarted) {
-                profileUploadStarted = true;
-                
-                console.log('Starting profile image upload...');
-                
-                // Show loading state
-                profileBtn.innerHTML = '<i class="spinner-border spinner-border-sm"></i>';
-                profileBtn.style.pointerEvents = 'none';
-                
-                // Submit the form
-                profileForm.submit();
-            }
-        });
-    }
-});
+}
 </script>
+
 @endsection

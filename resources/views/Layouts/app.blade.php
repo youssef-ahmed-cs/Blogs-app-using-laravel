@@ -1,10 +1,10 @@
-@vite(['resources/css/app.css', 'resources/js/app.js'])
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -296,18 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (dropdownToggle) {
         console.log('Dropdown toggle found');
         
-        dropdownToggle.addEventListener('click', function(e) {
-            console.log('Dropdown clicked');
-            e.preventDefault();
-            
-            const dropdownMenu = this.nextElementSibling;
-            if (dropdownMenu) {
-                dropdownMenu.classList.toggle('show');
-                console.log('Dropdown menu toggled');
-            }
-        });
-    } else {
-        console.error('Dropdown toggle not found!');
     }
 });
 
@@ -347,6 +335,5 @@ document.addEventListener('click', function(e) {
 });
 @endauth
 </script>
-
 </body>
 </html>
