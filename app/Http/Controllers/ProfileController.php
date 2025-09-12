@@ -87,33 +87,37 @@ class ProfileController extends Controller
         return view('profile.public', compact('user', 'posts', 'followers', 'followings', 'followersCount', 'followingsCount', 'isFollowing'));
     }
 
-    public function uploadCover(Request $request, $userId)
-    {
-        $request->validate([
-            'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+public function uploadCover(Request $request, User $user)
+{
+    if (auth()->id() !== $user->id) {
+        return redirect()->back()->with('error', 'Unauthorized');
+    }
 
-        $user = User::findOrFail($userId);
-        
-        // Check authorization
-        if (auth()->id() !== $user->id) {
-            abort(403, 'Unauthorized action.');
-        }
+    $request->validate([
+        'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
 
-        // Delete old cover image if exists
+    try {
+        // Delete old cover if exists
         if ($user->profile && $user->profile->cover_image) {
             Storage::disk('public')->delete($user->profile->cover_image);
         }
 
-        $coverPath = $request->file('cover_image')->store('covers', 'public');
-        
-        // Create or update profile
-        if (!$user->profile) {
-            $user->profile()->create(['cover_image' => $coverPath]);
-        } else {
-            $user->profile->update(['cover_image' => $coverPath]);
-        }
+        // Store new
+        $coverPath = $request->file('cover_image')->store('cover_images', 'public');
+
+        // Save in DB
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            ['cover_image' => $coverPath]
+        );
 
         return redirect()->back()->with('success', 'Cover photo updated successfully!');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Failed to upload cover.');
     }
+}
+
+
+
 }

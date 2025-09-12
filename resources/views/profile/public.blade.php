@@ -167,25 +167,60 @@
 </style>
 
 <div class="container">
-    <div class="card border-0 shadow-sm mb-5">
-        <!-- Cover Header -->
-        <div class="fb-cover-container">
-            <img class="fb-cover-img"
-                src="{{ $user->profile?->cover_image ? asset('storage/'.$user->profile->cover_image) : 'https://via.placeholder.com/800x210/6c757d/ffffff?text=Cover+Photo' }}"
-                alt="Cover">
-            <div class="fb-cover-gradient"></div>
-            <div class="fb-cover-action">
-                @if(auth()->check() && auth()->id() === $user->id)
-                    <form action="{{ route('profile.cover.upload', $user->id) }}" method="POST" enctype="multipart/form-data" class="d-inline">
-                        @csrf
-                        <label class="fb-btn-img" style="cursor:pointer;">
-                            <i class="bi bi-camera"></i> Add Cover Photo
-                            <input type="file" name="cover_image" accept="image/*" onchange="this.form.submit()" style="display:none;">
-                        </label>
-                    </form>
-                @endif
-            </div>
+    <!-- Display Success/Error Messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <div class="card border-0 shadow-sm mb-5">
+<!-- Cover Header -->
+<div class="fb-cover-container">
+    <img id="coverImage" 
+src="{{ asset('storage/'.$user->cover_photo) }}"          alt="Cover" 
+         class="fb-cover-img">
+
+    <div class="fb-cover-gradient"></div>
+
+    <div class="fb-cover-action">
+        @if(auth()->check() && auth()->id() === $user->id)
+            <form action="{{ route('profile.cover.upload', $user->id) }}" 
+                  method="POST" 
+                  enctype="multipart/form-data" 
+                  class="d-inline">
+                @csrf
+                <label class="fb-btn-img" style="cursor:pointer;">
+                    <i class="bi bi-camera"></i> 
+                    {{ $user->profile?->cover_image ? 'Change Cover Photo' : 'Add Cover Photo' }}
+                    <input type="file" name="cover_image" accept="image/*" onchange="this.form.submit()" style="display:none;">
+                </label>
+            </form>
+        @endif
+    </div>
+</div>
+
+
+
 
         <!-- Profile Section -->
         <div class="fb-profile-section">
@@ -480,4 +515,20 @@
 </div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const coverForm = document.querySelector('form[action*="cover.upload"]');
+    if (coverForm) {
+        coverForm.addEventListener('submit', function() {
+            const label = coverForm.querySelector('label');
+            if (label) {
+                label.innerHTML = '<i class="bi bi-spinner-border"></i> Uploading...';
+            }
+        });
+    }
+});
+</script>
+
+
+
 @endsection
