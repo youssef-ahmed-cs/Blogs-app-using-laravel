@@ -108,7 +108,18 @@
     .fb-profile-username {
         font-size: 1.1rem;
         color: #65676b;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .fb-profile-bio {
+        max-width: 600px;
+        line-height: 1.5;
+    }
+    
+    .fb-profile-bio p {
+        font-size: 1rem;
+        margin-bottom: 0.8rem;
+        white-space: pre-line;
     }
     
     .fb-profile-actions {
@@ -250,7 +261,13 @@
             <!-- Profile Details -->
             <div class="fb-profile-details">
                 <div class="fb-profile-name">{{ $user->name }}</div>
-                <div class="fb-profile-username text-muted mb-3">{{ '@' . strtolower(str_replace(' ', '', $user->name ?? 'User')) }}</div>
+                <div class="fb-profile-username text-muted">{{ '@' . strtolower(str_replace(' ', '', $user->name ?? 'User')) }}</div>
+                
+                @if($user->profile?->bio)
+                <div class="fb-profile-bio mb-3">
+                    <p class="text-muted">{{ nl2br(e($user->profile->bio)) }}</p>
+                </div>
+                @endif
                 
                 <div class="fb-profile-actions">
                     <!-- Followers Button -->
