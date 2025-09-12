@@ -108,18 +108,39 @@ document.addEventListener('click', function(e) {
             fetch(`/notifications/${notificationId}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 },
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
             .then(data => {
                 if(data.status === 'success') {
                     notificationItem.remove();
                     updateNotificationBadge();
+                    
+                    // Check if there are no more notifications
+                    if (document.querySelectorAll('.notification-item').length === 0) {
+                        // Show the empty state
+                        const container = document.querySelector('.container.mt-4');
+                        container.innerHTML = `
+                            <div class="text-center py-5">
+                                <i class="bi bi-bell-slash fs-1 text-muted mb-3"></i>
+                                <p class="text-muted">No notifications yet</p>
+                            </div>
+                        `;
+                    }
                 }
             })
-            .catch(err => console.error('Error deleting notification:', err));
+            .catch(err => {
+                console.error('Error deleting notification:', err);
+                alert('Failed to delete notification. Please try again.');
+            });
         }
         return;
     }
@@ -137,22 +158,32 @@ document.addEventListener('click', function(e) {
             fetch(`/notifications/${notificationId}/mark-as-read`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 },
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
             .then(data => {
                 if(data.status === 'success') {
                     // Update UI
                     notificationItem.classList.remove('unread');
-                    notificationItem.querySelector('.badge')?.remove();
-                    link.classList.remove('fw-bold');
+                    const badge = notificationItem.querySelector('.badge');
+                    if (badge) badge.remove();
+                    const boldText = notificationItem.querySelector('.fw-bold');
+                    if (boldText) boldText.classList.remove('fw-bold');
                     updateNotificationBadge();
-                    
-                    // Redirect to post
-                    window.location.href = href;
                 }
+                
+                // Redirect to post even if the server response was not a success
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 100);
             })
             .catch(err => {
                 console.error('Error marking notification as read:', err);
@@ -171,27 +202,54 @@ function markAllAsRead() {
     fetch('/notifications/mark-all-as-read', {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json',
+            'Content-Type': 'application/json',
         },
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return res.json();
+    })
     .then(data => {
         if(data.status === 'success') {
             // Update all notification items
             document.querySelectorAll('.notification-item.unread').forEach(item => {
                 item.classList.remove('unread');
-                item.querySelector('.badge')?.remove();
-                item.querySelector('.fw-bold')?.classList.remove('fw-bold');
+                const badge = item.querySelector('.badge');
+                if (badge) badge.remove();
+                const boldText = item.querySelector('.fw-bold');
+                if (boldText) boldText.classList.remove('fw-bold');
             });
             
             // Hide mark all as read button
-            document.querySelector('button[onclick="markAllAsRead()"]')?.remove();
+            const markAllBtn = document.querySelector('button[onclick="markAllAsRead()"]');
+            if (markAllBtn) markAllBtn.remove();
             
             updateNotificationBadge();
+            
+            // Show success message
+            const container = document.querySelector('.container.mt-4');
+            const successMsg = document.createElement('div');
+            successMsg.className = 'alert alert-success alert-dismissible fade show mt-3';
+            successMsg.innerHTML = `
+                All notifications marked as read
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            container.insertBefore(successMsg, container.firstChild.nextSibling);
+            
+            // Auto dismiss after 3 seconds
+            setTimeout(() => {
+                successMsg.remove();
+            }, 3000);
         }
     })
-    .catch(err => console.error('Error marking all as read:', err));
+    .catch(err => {
+        console.error('Error marking all as read:', err);
+        alert('Failed to mark all notifications as read. Please try again.');
+    });
 }
 
 // Update notification badge in navbar

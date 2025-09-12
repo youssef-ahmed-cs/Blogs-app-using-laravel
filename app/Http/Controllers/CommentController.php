@@ -61,26 +61,34 @@ public function toggleLike(Post $post)
 
         $post = Post::findOrFail($postId);
 
+        $user = Auth::user();
+        
         $comment = new Comment();
         $comment->content = $request->content;
-        $comment->user_id = auth()->id();
+        $comment->user_id = $user->id;
         $comment->post_id = $post->id;
         $comment->save();
+        
+        // Send notification to post author if they're not the commenter
+        if($post->user_id !== $user->id) {
+            $post->user->notify(new CommentNotification($comment));
+        }
 
-        return redirect()->back()->with('success', 'تم إضافة التعليق بنجاح ✅');
+        return redirect()->back()->with('success', 'Comment added successfully ✅');
     }
 
     public function destroy($id)
     {
         $comment = Comment::findOrFail($id);
+        $user = Auth::user();
 
-        if ($comment->user_id !== auth()->id()) {
-            abort(403, 'غير مسموح لك بحذف هذا التعليق');
+        if ($comment->user_id !== $user->id) {
+            abort(403, 'You are not allowed to delete this comment');
         }
 
         $comment->delete();
 
-        return redirect()->back()->with('success', 'تم حذف التعليق ❌');
+        return redirect()->back()->with('success', 'Comment deleted successfully ❌');
     }
 
 }

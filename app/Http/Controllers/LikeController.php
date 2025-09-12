@@ -21,6 +21,15 @@ class LikeController extends Controller
         } else {
             $post->likes()->create(['user_id' => $user->id]);
             $liked = true;
+            
+            // Send notification only if post author is not the same as like author
+            if ($post->user_id !== $user->id) {
+                $post->user->notify(new \App\Notifications\PostInteraction(
+                    $user,
+                    $post,
+                    'like'
+                ));
+            }
         }
 
         return response()->json([

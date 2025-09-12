@@ -53,10 +53,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/{user}/cover-upload', [ProfileController::class, 'uploadCover'])->name('profile.cover.upload');
     Route::post('/profile/{user}/avatar-upload', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar.upload');
     
-    // Placeholder routes for non-implemented features
- Route::get('/notifications', [NotificationController::class, 'index'])
-    ->name('notifications.index')
-    ->middleware('auth');
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     
     // Route::get('/settings', function() { 
     //     return redirect()->route('profile.show')->with('info', 'Use Profile Settings for now.'); 
