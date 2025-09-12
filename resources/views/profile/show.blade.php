@@ -11,6 +11,16 @@
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
+        
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -26,12 +36,26 @@
 
             <div class="mb-3">
                 <label class="form-label">Name</label>
-                <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}">
+                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}">
+                @error('name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}">
+                @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Bio</label>
-                <input type="text" name="bio" class="form-control" value="{{ old('bio', $user->bio) }}">
+                <input type="text" name="bio" class="form-control @error('bio') is-invalid @enderror" value="{{ old('bio', $user->profile?->bio) }}">
+                @error('bio')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <button type="submit" class="btn btn-primary">Save Changes</button>
