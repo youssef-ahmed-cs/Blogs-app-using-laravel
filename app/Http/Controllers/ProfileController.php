@@ -122,8 +122,17 @@ class ProfileController extends Controller
 
     public function uploadCover(Request $request, User $user)
     {
+        // Add logging to debug duplicate calls
+        Log::info('uploadCover method called', [
+            'user_id' => $user->id,
+            'auth_user' => auth()->id(),
+            'has_file' => $request->hasFile('cover_image'),
+            'session_id' => session()->getId()
+        ]);
+
         // Check if user is authenticated and authorized
         if (!auth()->check() || auth()->id() !== $user->id) {
+            Log::warning('Unauthorized cover upload attempt', ['user_id' => $user->id, 'auth_user' => auth()->id()]);
             return redirect()->back()->with('error', 'Unauthorized');
         }
 
@@ -140,16 +149,19 @@ class ProfileController extends Controller
         try {
             // Check if file is valid
             if (!$request->hasFile('cover_image') || !$request->file('cover_image')->isValid()) {
+                Log::error('Invalid file upload', ['user_id' => $user->id]);
                 return redirect()->back()->with('error', 'Invalid file upload. Please try again.');
             }
 
             // Delete old cover if exists
             if ($user->profile && $user->profile->cover_image) {
                 Storage::disk('public')->delete($user->profile->cover_image);
+                Log::info('Old cover image deleted', ['path' => $user->profile->cover_image]);
             }
 
             // Store new cover image
             $coverPath = $request->file('cover_image')->store('cover_images', 'public');
+            Log::info('New cover image stored', ['path' => $coverPath]);
 
             // Save in DB - ensure profile exists
             $user->profile()->updateOrCreate(
@@ -157,6 +169,7 @@ class ProfileController extends Controller
                 ['cover_image' => $coverPath]
             );
 
+            Log::info('Cover image updated successfully', ['user_id' => $user->id, 'path' => $coverPath]);
             return redirect()->back()->with('success', 'Cover photo updated successfully!');
             
         } catch (\Exception $e) {
@@ -165,6 +178,67 @@ class ProfileController extends Controller
                 'error' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Failed to upload cover photo. Please try again.');
+        }
+    }
+
+    public function uploadAvatar(Request $request, User $user)
+    {
+        // Add logging to debug duplicate calls
+        Log::info('uploadAvatar method called', [
+            'user_id' => $user->id,
+            'auth_user' => auth()->id(),
+            'has_file' => $request->hasFile('profile_image'),
+            'session_id' => session()->getId()
+        ]);
+
+        // Check if user is authenticated and authorized
+        if (!auth()->check() || auth()->id() !== $user->id) {
+            Log::warning('Unauthorized avatar upload attempt', ['user_id' => $user->id, 'auth_user' => auth()->id()]);
+            return redirect()->back()->with('error', 'Unauthorized');
+        }
+
+        // Validate the uploaded file
+        $request->validate([
+            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ], [
+            'profile_image.required' => 'Please select an image.',
+            'profile_image.image' => 'The file must be an image.',
+            'profile_image.mimes' => 'The image must be a JPEG, PNG, JPG, GIF, or WebP.',
+            'profile_image.max' => 'The image size must not exceed 2MB.',
+        ]);
+
+        try {
+            // Check if file is valid
+            if (!$request->hasFile('profile_image') || !$request->file('profile_image')->isValid()) {
+                Log::error('Invalid avatar file upload', ['user_id' => $user->id]);
+                return redirect()->back()->with('error', 'Invalid file upload. Please try again.');
+            }
+
+            // Delete old profile image if exists
+            if ($user->profile && $user->profile->profile_image) {
+                Storage::disk('public')->delete($user->profile->profile_image);
+                Log::info('Old profile image deleted', ['path' => $user->profile->profile_image]);
+            }
+
+            // Store new profile image
+            $imagePath = $request->file('profile_image')->store('profiles', 'public');
+            Log::info('New profile image stored', ['path' => $imagePath]);
+
+            // Save in DB - ensure profile exists
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['profile_image' => $imagePath]
+            );
+
+            Log::info('Profile image updated successfully', ['user_id' => $user->id, 'path' => $imagePath]);
+            return redirect()->back()->with('success', 'Profile photo updated successfully!');
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to upload profile image: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'error' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Failed to upload profile photo. Please try again.');
         }
     }
 }

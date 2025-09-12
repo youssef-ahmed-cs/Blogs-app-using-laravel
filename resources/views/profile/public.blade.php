@@ -224,17 +224,19 @@
 
             <div class="fb-cover-action">
                 @if(auth()->check() && auth()->id() === $user->id)
-                    <form id="coverUploadForm"
-                          action="{{ route('profile.cover.upload', $user->id) }}"
-                          method="POST"
-                          enctype="multipart/form-data"
-                          class="d-inline">
-                        @csrf
+                    <div class="d-inline">
                         <label class="fb-btn-img" style="cursor:pointer;" id="coverUploadBtn" for="coverInput">
                             <i class="bi bi-camera"></i> {{ $user->profile?->cover_image ? 'Change Cover Photo' : 'Add Cover Photo' }}
                         </label>
-                        <input type="file" id="coverInput" name="cover_image" accept="image/*" style="display:none;">
-                    </form>
+                        <form id="coverUploadForm"
+                              action="{{ route('profile.cover.upload', $user->id) }}"
+                              method="POST"
+                              enctype="multipart/form-data"
+                              style="display: none;">
+                            @csrf
+                            <input type="file" id="coverInput" name="cover_image" accept="image/*" style="display:none;">
+                        </form>
+                    </div>
                 @endif
             </div>
         </div>
@@ -247,11 +249,11 @@
                      src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : '/images/default-avatar.png' }}"
                      alt="Profile">
                 @if(auth()->check() && auth()->id() === $user->id)
-                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
+                    <form action="{{ route('profile.avatar.upload', $user->id) }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
                         @csrf
-                        <input type="file" name="profile_image" id="profileImageInput" accept="image/*" onchange="this.form.submit()">
+                        <input type="file" name="profile_image" id="profileImageInput" accept="image/*">
                     </form>
-                    <button onclick="document.getElementById('profileImageInput').click();" class="avatar-camera-btn">
+                    <button onclick="document.getElementById('profileImageInput').click();" class="avatar-camera-btn" id="avatarCameraBtn">
                         <i class="bi bi-camera"></i>
                     </button>
                 @endif
@@ -554,46 +556,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const coverInput = document.getElementById('coverInput');
     const coverForm = document.getElementById('coverUploadForm');
     const coverBtn = document.getElementById('coverUploadBtn');
-    let isUploading = false;
-    let formSubmitted = false;
-
-    console.log('Cover elements found:', {
-        coverInput: !!coverInput,
-        coverForm: !!coverForm,
-        coverBtn: !!coverBtn
-    });
-
-    if (coverInput && coverForm) {
-        // Prevent form from submitting multiple times
-        coverForm.addEventListener('submit', function(e) {
-            if (formSubmitted) {
-                console.log('Form already submitted, preventing duplicate');
-                e.preventDefault();
-                return false;
-            }
-            formSubmitted = true;
-            console.log('Form submitted');
-        });
-
+    
+    if (coverInput && coverForm && coverBtn) {
+        let uploadStarted = false;
+        
         coverInput.addEventListener('change', function(e) {
-            console.log('File selected:', this.files.length);
-            
-            if (this.files.length > 0 && !isUploading && !formSubmitted) {
-                console.log('Starting upload...');
-                isUploading = true;
+            if (this.files.length > 0 && !uploadStarted) {
+                uploadStarted = true;
                 
-                // Show uploading state
-                const originalContent = coverBtn.innerHTML;
+                console.log('Starting single upload...');
+                
+                // Show loading state
                 coverBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-1"></i>Uploading...';
                 coverBtn.style.pointerEvents = 'none';
                 
-                // Submit form
-                console.log('Submitting form...');
+                // Append the file input to the form and submit
+                coverForm.appendChild(this);
                 coverForm.submit();
             }
         });
-    } else {
-        console.log('Cover upload elements not found');
+    }
+
+    // Handle profile image upload
+    const profileInput = document.getElementById('profileImageInput');
+    const profileForm = document.getElementById('avatarForm');
+    const profileBtn = document.getElementById('avatarCameraBtn');
+    
+    if (profileInput && profileForm && profileBtn) {
+        let profileUploadStarted = false;
+        
+        profileInput.addEventListener('change', function(e) {
+            if (this.files.length > 0 && !profileUploadStarted) {
+                profileUploadStarted = true;
+                
+                console.log('Starting profile image upload...');
+                
+                // Show loading state
+                profileBtn.innerHTML = '<i class="spinner-border spinner-border-sm"></i>';
+                profileBtn.style.pointerEvents = 'none';
+                
+                // Submit the form
+                profileForm.submit();
+            }
+        });
     }
 });
 </script>
