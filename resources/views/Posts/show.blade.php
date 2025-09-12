@@ -9,19 +9,47 @@
     <div class="post-card card shadow-sm mb-4">
         <div class="card-body">
             <!-- الهيدر -->
-            <div class="d-flex align-items-center mb-3">
-                <a href="{{ route('profile.public', $post->user->id) }}">
-                    <img src="{{ $post->user->profile?->profile_image 
-                        ? asset('storage/' . $post->user->profile->profile_image) 
-                        : asset('images/default-avatar.png') }}" 
-                         class="rounded-circle me-2" width="50" height="50" alt="User Avatar">
-                </a>
-                <div>
-                    <a href="{{ route('profile.public', $post->user->id) }}" class="fw-bold text-dark text-decoration-none">
-                        {{ $post->user->name ?? 'مستخدم محذوف' }}
-                    </a><br>
-                    <small class="text-muted">{{ $post->created_at->diffForHumans() }}</small>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center">
+                    <a href="{{ route('profile.public', $post->user->id) }}">
+                        <img src="{{ $post->user->profile?->profile_image 
+                            ? asset('storage/' . $post->user->profile->profile_image) 
+                            : asset('images/default-avatar.png') }}" 
+                             class="rounded-circle me-2" width="50" height="50" alt="User Avatar">
+                    </a>
+                    <div>
+                        <a href="{{ route('profile.public', $post->user->id) }}" class="fw-bold text-dark text-decoration-none">
+                            {{ $post->user->name ?? 'مستخدم محذوف' }}
+                        </a><br>
+                        <small class="text-muted">{{ $post->created_at->diffForHumans() }}</small>
+                    </div>
                 </div>
+                
+                @auth
+                @if($post->user_id === auth()->id())
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                            id="dropdownMenuButtonShow{{ $post->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButtonShow{{ $post->id }}">
+                        <li><a class="dropdown-item" href="{{ route('posts.edit', $post) }}">
+                            <i class="bi bi-pencil me-2"></i> Edit</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ route('posts.destroy', $post) }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="dropdown-item text-danger" 
+                                        onclick="return confirm('Are you sure you want to delete this post?')">
+                                    <i class="bi bi-trash me-2"></i> Delete
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                @endif
+                @endauth
             </div>
 
             <!-- نص البوست -->
@@ -37,17 +65,49 @@
                 </div>
             @endif
 
+            <!-- Post Stats -->
+            <div class="d-flex justify-content-between align-items-center text-muted mb-3">
+                <div class="stats-like-count">
+                    @if($post->likes_count > 0)
+                        <i class="bi bi-heart-fill text-danger me-1"></i> 
+                        <span>{{ $post->likes_count }} {{ $post->likes_count == 1 ? 'like' : 'likes' }}</span>
+                    @else
+                        <span class="text-muted">No likes yet</span>
+                    @endif
+                </div>
+                <div>
+                    @if($post->comments_count > 0)
+                        <i class="bi bi-chat-dots me-1"></i>
+                        <span>{{ $post->comments_count }} {{ $post->comments_count == 1 ? 'comment' : 'comments' }}</span>
+                    @endif
+                </div>
+            </div>
+
             <!-- أزرار الإعجاب والتعليقات والمشاركة -->
             <div class="d-flex justify-content-around border-top pt-2 text-muted post-actions">
-                <button class="btn btn-light p-1 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" data-post-id="{{ $post->id }}">
-                    <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i> <span>{{ $post->likes->count() }}</span>
+                @auth
+                <button class="btn btn-light p-2 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}" data-post-id="{{ $post->id }}">
+                    <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }}"></i> 
+                    <span class="like-text">{{ $post->isLikedBy(auth()->user()) ? 'Liked' : 'Like' }}</span>
+                    <span class="like-count ms-1">({{ $post->likes_count }})</span>
                 </button>
-                <button class="btn btn-light p-1">
-                    <i class="bi bi-chat"></i> {{ $post->comments->count() }}
+                @else
+                <button class="btn btn-light p-2 require-auth" data-action="like">
+                    <i class="bi bi-heart"></i> 
+                    <span>Like</span>
+                    <span class="like-count ms-1">({{ $post->likes_count }})</span>
                 </button>
-                <button class="btn btn-light p-1 share-btn">
-                    <i class="bi bi-share"></i> مشاركة
+                @endauth
+                
+                <button class="btn btn-light p-2">
+                    <i class="bi bi-chat"></i> 
+                    <span>Comment ({{ $post->comments_count }})</span>
                 </button>
+                
+                <button class="btn btn-light p-2 share-btn">
+                    <i class="bi bi-share"></i> Share
+                </button>
+            </div>
             </div>
         </div>
     </div>
@@ -177,6 +237,58 @@ document.addEventListener('DOMContentLoaded', function() {
                     input.value = '';
                     form.classList.add('d-none');
                 }
+            });
+        });
+    });
+
+    // Like functionality
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const icon = this.querySelector('i');
+            const likeText = this.querySelector('.like-text');
+            const likeCount = this.querySelector('.like-count');
+            const statsLikeCount = document.querySelector('.stats-like-count');
+            
+            fetch(`/posts/${postId}/toggle-like`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update button appearance
+                    if (data.liked) {
+                        this.classList.add('text-danger');
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
+                        likeText.textContent = 'Liked';
+                    } else {
+                        this.classList.remove('text-danger');
+                        icon.classList.remove('bi-heart-fill');
+                        icon.classList.add('bi-heart');
+                        likeText.textContent = 'Like';
+                    }
+                    
+                    // Update like count in button
+                    likeCount.textContent = `(${data.likes_count})`;
+                    
+                    // Update like count in stats section
+                    if (statsLikeCount) {
+                        if (data.likes_count > 0) {
+                            statsLikeCount.innerHTML = `<i class="bi bi-heart-fill text-danger me-1"></i> <span>${data.likes_count} ${data.likes_count == 1 ? 'like' : 'likes'}</span>`;
+                        } else {
+                            statsLikeCount.innerHTML = `<span class="text-muted">No likes yet</span>`;
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
         });
     });

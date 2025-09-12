@@ -64,7 +64,7 @@
 
             <!-- Posts Feed -->
             @forelse($posts as $post)
-            <div class="card mb-4">
+            <div class="card mb-4" id="post-{{ $post->id }}">
                 <div class="card-header bg-white border-0 pb-0">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
@@ -83,19 +83,21 @@
                         @auth
                         @if($post->user_id === auth()->id())
                         <div class="dropdown">
-                            <button class="btn btn-sm" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                    id="dropdownMenuButton{{ $post->id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-three-dots"></i>
                             </button>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $post->id }}">
                                 <li><a class="dropdown-item" href="{{ route('posts.edit', $post) }}">
-                                    <i class="bi bi-pencil"></i> Edit</a></li>
+                                    <i class="bi bi-pencil me-2"></i> Edit</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{{ route('posts.destroy', $post) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="dropdown-item text-danger" 
-                                                onclick="return confirm('Are you sure?')">
-                                            <i class="bi bi-trash"></i> Delete
+                                                onclick="return confirm('Are you sure you want to delete this post?')">
+                                            <i class="bi bi-trash me-2"></i> Delete
                                         </button>
                                     </form>
                                 </li>
@@ -119,16 +121,20 @@
 
                     <!-- Post Stats -->
                     <div class="d-flex justify-content-between align-items-center text-muted mb-3">
-                        <span>
+                        <div class="stats-like-count">
                             @if($post->likes_count > 0)
-                            <i class="bi bi-heart-fill text-danger"></i> {{ $post->likes_count }}
+                                <i class="bi bi-heart-fill text-danger me-1"></i> 
+                                <span>{{ $post->likes_count }} {{ $post->likes_count == 1 ? 'like' : 'likes' }}</span>
+                            @else
+                                <span class="text-muted">No likes yet</span>
                             @endif
-                        </span>
-                        <span>
+                        </div>
+                        <div>
                             @if($post->comments_count > 0)
-                            {{ $post->comments_count }} comments
+                                <i class="bi bi-chat-dots me-1"></i>
+                                <span>{{ $post->comments_count }} {{ $post->comments_count == 1 ? 'comment' : 'comments' }}</span>
                             @endif
-                        </span>
+                        </div>
                     </div>
 
                     <!-- Action Buttons -->
@@ -137,12 +143,14 @@
                         <button class="btn btn-light flex-fill me-2 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}"
                                 data-post-id="{{ $post->id }}">
                             <i class="bi bi-heart{{ $post->isLikedBy(auth()->user()) ? '-fill' : '' }}"></i> 
-                            Like
+                            <span class="like-text">{{ $post->isLikedBy(auth()->user()) ? 'Liked' : 'Like' }}</span>
+                            <span class="like-count ms-1">({{ $post->likes_count }})</span>
                         </button>
                         @else
                         <button class="btn btn-light flex-fill me-2 require-auth" data-action="like">
                             <i class="bi bi-heart"></i> 
-                            Like
+                            <span>Like</span>
+                            <span class="like-count ms-1">({{ $post->likes_count }})</span>
                         </button>
                         @endauth
 
@@ -328,6 +336,60 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
             })
             .catch(err => console.error(err));
+        });
+    });
+});
+
+// Like functionality
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const icon = this.querySelector('i');
+            const likeText = this.querySelector('.like-text');
+            const likeCount = this.querySelector('.like-count');
+            const statsLikeCount = document.querySelector(`#post-${postId} .stats-like-count`);
+            
+            fetch(`/posts/${postId}/toggle-like`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update button appearance
+                    if (data.liked) {
+                        this.classList.add('text-danger');
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
+                        likeText.textContent = 'Liked';
+                    } else {
+                        this.classList.remove('text-danger');
+                        icon.classList.remove('bi-heart-fill');
+                        icon.classList.add('bi-heart');
+                        likeText.textContent = 'Like';
+                    }
+                    
+                    // Update like count in button
+                    likeCount.textContent = `(${data.likes_count})`;
+                    
+                    // Update like count in stats section
+                    if (statsLikeCount) {
+                        if (data.likes_count > 0) {
+                            statsLikeCount.innerHTML = `<i class="bi bi-heart-fill text-danger me-1"></i> <span>${data.likes_count} ${data.likes_count == 1 ? 'like' : 'likes'}</span>`;
+                        } else {
+                            statsLikeCount.innerHTML = `<span class="text-muted">No likes yet</span>`;
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     });
 });
