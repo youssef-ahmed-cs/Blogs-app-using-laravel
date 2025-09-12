@@ -19,7 +19,7 @@ class PostController extends Controller
 
     public function index()
     {
-        $posts = Post::with(['user.profile', 'likes', 'comments'])
+        $posts = Post::with(['user.profile', 'likes'])
                     ->withCount(['likes', 'comments'])
                     ->latest()
                     ->paginate(10);
@@ -29,12 +29,12 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
-        // Load the post with relationships
+        // Load the post with relationships and counts
         $post->load(['user.profile', 'likes', 'comments.user.profile'])
              ->loadCount(['likes', 'comments']);
         
         // Get related posts or recent posts for the feed
-        $posts = Post::with(['user.profile', 'likes', 'comments'])
+        $posts = Post::with(['user.profile', 'likes'])
                     ->withCount(['likes', 'comments'])
                     ->where('id', '!=', $post->id)
                     ->latest()

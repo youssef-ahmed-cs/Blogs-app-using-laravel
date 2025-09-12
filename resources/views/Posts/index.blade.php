@@ -122,7 +122,7 @@
                     <!-- Post Stats -->
                     <div class="d-flex justify-content-between align-items-center text-muted mb-3">
                         <div class="stats-like-count">
-                            @if($post->likes_count > 0)
+                            @if(($post->likes_count ?? 0) > 0)
                                 <i class="bi bi-heart-fill text-danger me-1"></i> 
                                 <span>{{ $post->likes_count }} {{ $post->likes_count == 1 ? 'like' : 'likes' }}</span>
                             @else
@@ -350,32 +350,48 @@ document.addEventListener('DOMContentLoaded', function() {
             const likeCount = this.querySelector('.like-count');
             const statsLikeCount = document.querySelector(`#post-${postId} .stats-like-count`);
             
+            console.log('Like button clicked for post:', postId);
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+            
             fetch(`/posts/${postId}/toggle-like`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
+                
                 if (data.success) {
                     // Update button appearance
                     if (data.liked) {
                         this.classList.add('text-danger');
                         icon.classList.remove('bi-heart');
                         icon.classList.add('bi-heart-fill');
-                        likeText.textContent = 'Liked';
+                        if (likeText) likeText.textContent = 'Liked';
                     } else {
                         this.classList.remove('text-danger');
                         icon.classList.remove('bi-heart-fill');
                         icon.classList.add('bi-heart');
-                        likeText.textContent = 'Like';
+                        if (likeText) likeText.textContent = 'Like';
                     }
                     
                     // Update like count in button
-                    likeCount.textContent = `(${data.likes_count})`;
+                    if (likeCount) {
+                        likeCount.textContent = `(${data.likes_count})`;
+                    }
                     
                     // Update like count in stats section
                     if (statsLikeCount) {
@@ -385,10 +401,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             statsLikeCount.innerHTML = `<span class="text-muted">No likes yet</span>`;
                         }
                     }
+                } else {
+                    console.error('Server returned error:', data);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Fetch error:', error);
             });
         });
     });
