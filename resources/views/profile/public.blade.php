@@ -164,6 +164,16 @@
             padding: 12px 16px;
         }
     }
+    
+    /* Alert auto-hide animation */
+    .alert {
+        transition: opacity 0.5s ease, transform 0.3s ease;
+    }
+    
+    .alert.fade-out {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
 </style>
 
 <div class="container">
@@ -525,11 +535,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide alert messages after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            if (alert && alert.parentNode) {
+                alert.classList.add('fade-out');
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 500); // Wait for fade-out animation
+            }
+        }, 5000); // Hide after 5 seconds
+    });
+
     // Handle cover image upload
     const coverInput = document.getElementById('coverInput');
     const coverForm = document.getElementById('coverUploadForm');
     const coverBtn = document.getElementById('coverUploadBtn');
     let isUploading = false;
+    let formSubmitted = false;
 
     console.log('Cover elements found:', {
         coverInput: !!coverInput,
@@ -538,10 +564,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (coverInput && coverForm) {
+        // Prevent form from submitting multiple times
+        coverForm.addEventListener('submit', function(e) {
+            if (formSubmitted) {
+                console.log('Form already submitted, preventing duplicate');
+                e.preventDefault();
+                return false;
+            }
+            formSubmitted = true;
+            console.log('Form submitted');
+        });
+
         coverInput.addEventListener('change', function(e) {
             console.log('File selected:', this.files.length);
             
-            if (this.files.length > 0 && !isUploading) {
+            if (this.files.length > 0 && !isUploading && !formSubmitted) {
                 console.log('Starting upload...');
                 isUploading = true;
                 
