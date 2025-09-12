@@ -31,7 +31,12 @@ public function index()
     public function show(Post $post)
     {
         // Load the post with relationships and counts
-        $post->load(['user.profile', 'likes', 'comments.user.profile'])
+        $post->load([
+                'user.profile',
+                'likes',
+                'comments.user.profile',
+                'comments.replies.user.profile',
+            ])
              ->loadCount(['likes', 'comments']);
         
         // Get related posts or recent posts for the feed
@@ -42,7 +47,102 @@ public function index()
                     ->take(5)
                     ->get();
         
+        // Increment view count when accessing the post directly
+        $post->increment('views');
+        
         return view('Posts.show', compact('post', 'posts'));
+    }
+    
+    /**
+     * Record a view for the post
+     */
+    public function recordView(Post $post)
+    {
+        $post->increment('views');
+        
+        return response()->json([
+            'success' => true,
+            'views' => $post->views
+        ]);
+    }
+    
+    /**
+     * Handle post sharing
+     */
+    public function share(Request $request, Post $post)
+    {
+        // Validate request
+        $request->validate([
+            'platform' => 'required|string|in:facebook,twitter,whatsapp,telegram,copy'
+        ]);
+        
+        // Record the share activity
+        $post->increment('shares');
+        
+        // Get the share URL based on the platform
+        $shareUrl = route('posts.show', $post);
+        $postTitle = $post->title ?: substr($post->description, 0, 60) . '...';
+        
+        $urls = [
+            'facebook' => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($shareUrl),
+            'twitter' => 'https://twitter.com/intent/tweet?text=' . urlencode($postTitle) . '&url=' . urlencode($shareUrl),
+            'whatsapp' => 'https://api.whatsapp.com/send?text=' . urlencode($postTitle . ' ' . $shareUrl),
+            'telegram' => 'https://t.me/share/url?url=' . urlencode($shareUrl) . '&text=' . urlencode($postTitle),
+            'copy' => $shareUrl,
+        ];
+        
+        return response()->json([
+            'success' => true, 
+            'url' => $urls[$request->platform],
+            'shares' => $post->shares
+        ]);
+    }
+    
+    /**
+     * Share preview for social media
+     */
+    public function sharePreview(Post $post)
+    {
+        return view('Posts.share-preview', compact('post'));
+    }
+    
+    /**
+     * Reshare a post as a new post with a quote
+     */
+    public function reshare(Request $request, Post $post)
+    {
+        // Validate request
+        $request->validate([
+            'quote' => 'nullable|string|max:500',
+        ]);
+        
+        // Create a new post as a reshare
+        $newPost = new Post();
+        $newPost->user_id = auth()->id();
+        $newPost->title = $request->has('title') ? $request->title : null;
+        $newPost->description = $post->title ?? ''; // Use original post title as description
+        $newPost->quote = $request->quote ?? ''; // Store the quote in the dedicated field
+        $newPost->original_post_id = $post->id;
+        $newPost->is_reshare = true;
+        $newPost->save();
+        
+        // Increment the share count on the original post
+        $post->increment('shares');
+        
+        // Notify the original post author if they're not the same as the resharing user
+        if ($post->user_id != Auth::id()) {
+            $post->user->notify(new \App\Notifications\PostInteraction(
+                Auth::user(),
+                $post,
+                'reshare'
+            ));
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Post reshared successfully',
+            'redirect' => route('posts.show', $newPost)
+        ]);
     }
 
     public function create()
@@ -59,7 +159,7 @@ public function index()
         ]);
 
         Post::create([
-            'user_id'    => auth()->id(),
+            'user_id'    => Auth::id(),
             'title'      => $request->title,
             'description'=> $request->description,
             'image_post' => $request->hasFile('image_post')
@@ -94,7 +194,7 @@ public function index()
         ]);
 
         $data = [
-            'content' => $request->content,
+            'content' => $request->input('content'),
         ];
 
         if ($request->hasFile('image')) {

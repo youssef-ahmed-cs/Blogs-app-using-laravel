@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comments', function (Blueprint $table) {
-            $table->unsignedBigInteger('parent_id')->nullable()->after('user_id');
-            $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
+            // Check if the column exists before trying to add it
+            if (!Schema::hasColumn('comments', 'parent_id')) {
+                $table->unsignedBigInteger('parent_id')->nullable()->after('user_id');
+                $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
+            }
         });
     }
 
@@ -23,8 +26,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('comments', function (Blueprint $table) {
-            $table->dropForeign(['parent_id']);
-            $table->dropColumn('parent_id');
+            // Only drop if the column exists
+            if (Schema::hasColumn('comments', 'parent_id')) {
+                $table->dropForeign(['parent_id']);
+                $table->dropColumn('parent_id');
+            }
         });
     }
 };

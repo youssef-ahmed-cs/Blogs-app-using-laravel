@@ -26,6 +26,8 @@ Route::controller(AuthController::class)->group(function () {
 
 // Public routes (accessible to everyone)
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::post('/posts/{post}/view', [PostController::class, 'recordView'])->name('posts.view');
+Route::get('/posts/{post}/share-preview', [PostController::class, 'sharePreview'])->name('posts.share-preview');
 Route::get('/profile/{id}', [ProfileController::class, 'public'])->name('profile.public');
 
 // Protected routes (require authentication)
@@ -42,6 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+    
+    // Share routes
+    Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
+    Route::post('/posts/{post}/reshare', [PostController::class, 'reshare'])->name('posts.reshare');
     
     // Follow/Unfollow routes
     Route::post('/follow/{user}', [FollowController::class, 'follow'])->name('follow');
