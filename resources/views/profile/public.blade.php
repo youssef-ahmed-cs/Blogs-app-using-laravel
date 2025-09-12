@@ -237,11 +237,11 @@
                      src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : '/images/default-avatar.png' }}"
                      alt="Profile">
                 @if(auth()->check() && auth()->id() === $user->id)
-                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
+                    <form action="{{ route('profile.avatar.upload', $user) }}" method="POST" enctype="multipart/form-data" id="avatarForm" style="display:none;">
                         @csrf
-                        <input type="file" name="profile_image" id="profileImageInput" accept="image/*" onchange="this.form.submit()">
+                        <input type="file" name="profile_image" id="profileImageInput" accept="image/*" onchange="submitAvatarForm()">
                     </form>
-                    <button onclick="document.getElementById('profileImageInput').click();" class="avatar-camera-btn">
+                    <button onclick="document.getElementById('profileImageInput').click();" class="avatar-camera-btn" id="avatarUploadBtn">
                         <i class="bi bi-camera"></i>
                     </button>
                 @endif
@@ -503,4 +503,23 @@
 </div>
 
 <link rel="stylesheet" href="/css/bootstrap-icons.css">
+
+<script>
+function submitAvatarForm() {
+    const form = document.getElementById('avatarForm');
+    const btn = document.getElementById('avatarUploadBtn');
+    const fileInput = document.getElementById('profileImageInput');
+    
+    // Check if a file was selected
+    if (fileInput.files.length > 0) {
+        // Show loading state
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+        btn.disabled = true;
+        
+        // Submit the form
+        form.submit();
+    }
+}
+</script>
+
 @endsection
