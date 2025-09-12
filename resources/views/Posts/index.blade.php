@@ -225,8 +225,6 @@
     </div>
 </div>
 @endforeach
-
-
                         @if($post->comments->count() > 3)
                         <a href="{{ route('posts.show', $post) }}" class="text-primary">
                             View all {{ $post->comments->count() }} comments
