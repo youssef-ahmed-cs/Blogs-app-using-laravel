@@ -58,12 +58,17 @@ Route::middleware('auth')->group(function () {
     ->name('notifications.index')
     ->middleware('auth');
     
-    Route::get('/settings', function() { 
-        return redirect()->route('profile.show')->with('info', 'Use Profile Settings for now.'); 
-    })->name('settings.show');
+    // Route::get('/settings', function() { 
+    //     return redirect()->route('profile.show')->with('info', 'Use Profile Settings for now.'); 
+    // })->name('settings.show');
     
     // Dashboard route
     Route::get('/dashboard', function() {
         return redirect()->route('home');
     })->name('dashboard');
+});
+Route::middleware('auth')->group(function () {
+    Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
+    Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.updatePassword');
+    Route::delete('/settings/delete', [SettingsController::class, 'destroy'])->name('settings.destroy');
 });

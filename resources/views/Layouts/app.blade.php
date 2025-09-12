@@ -186,7 +186,7 @@
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#">
+                            <a class="dropdown-item" href="{{ route('settings.show') }}">
                                 <i class="bi bi-sliders"></i>Settings
                             </a>
                         </li>
