@@ -456,7 +456,7 @@ body {
             <b>FaceBog</b>
         </a>
 
-        <!-- Search -->
+        {{-- <!-- Search -->
         <form class="d-flex mx-auto" style="width: 400px;">
             <div class="input-group">
                 <input class="form-control" type="search" placeholder="Search FaceBog..." aria-label="Search">
@@ -464,7 +464,7 @@ body {
                     <i class="bi bi-search"></i>
                 </button>
             </div>
-        </form>
+        </form> --}}
 
         <!-- Right side -->
         <ul class="navbar-nav d-flex align-items-center">
