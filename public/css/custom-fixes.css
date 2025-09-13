@@ -42,3 +42,68 @@
     color: #ff6b6b !important;
     border-color: #ff6b6b !important;
 }
+
+/* Comment styling */
+.comment-bubble {
+    background-color: #f0f2f5 !important;
+    border-radius: 18px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 5px !important;
+}
+
+.comment-bubble p {
+    color: #333 !important;
+    margin-bottom: 0 !important;
+}
+
+body.retro-theme .comment-bubble {
+    background-color: rgba(255, 17, 167, 0.15) !important;
+    border: 1px solid #FF11A7 !important;
+    box-shadow: 0 0 5px #FF11A7 !important;
+}
+
+body.retro-theme .comment-bubble p {
+    color: #FF79C6 !important; 
+    text-shadow: 0 0 2px rgba(255, 121, 198, 0.5) !important;
+}
+
+body.retro-theme .comment-bubble strong {
+    color: #fff !important;
+    text-shadow: 0 0 3px #FF11A7 !important;
+}
+
+.comment-actions button small {
+    color: #0d6efd !important;
+}
+
+body.retro-theme .comment-actions button small {
+    color: #FF79C6 !important;
+}
+
+.new-comment-form button[type="submit"] {
+    font-weight: bold !important;
+}
+
+/* Post and comment container sizing */
+.post-card,
+.comment-section {
+    max-width: 680px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Fix post display on show page */
+.container .post-card {
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    margin-bottom: 20px !important;
+}
+
+body.retro-theme .container .post-card,
+body.retro-theme .container .comment-section {
+    background: rgba(34, 0, 51, 0.95) !important;
+    border: 2px solid #FF11A7 !important;
+    box-shadow: 0 0 15px #FF11A7 !important;
+}

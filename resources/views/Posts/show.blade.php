@@ -3,10 +3,11 @@
 @section('title', 'عرض البوست')
 
 @section('content')
+<meta name="user-name" content="{{ auth()->user()->name ?? '' }}">
 <div class="container mt-4">
 
     <!-- البوست -->
-    <div class="post-card card shadow-sm mb-4">
+    <div class="post-card card shadow-sm mb-4 show-page-post-card">
         <div class="card-body">
             <!-- الهيدر -->
             <div class="d-flex align-items-center mb-3">
@@ -92,7 +93,7 @@
     </div>
 
     <!-- التعليقات -->
-    <div class="card shadow-sm comment-section mb-4 comments-container">
+    <div class="card shadow-sm comment-section mb-4 comments-container show-page-post-card">
         <div class="card-header fw-bold">💬 التعليقات ({{ $post->comments->count() }})</div>
         <div class="card-body">
 
@@ -382,6 +383,7 @@
 @push('scripts')
 <!-- The reply interactions are handled in the shared partial's script and global handlers -->
 <script src="{{ asset('js/comment-handlers.js') }}"></script>
+<script src="{{ asset('js/comments-style-fix.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Update view count when post is shown

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <link rel="stylesheet" href="{{ asset('css/retro-theme.css') }}">
     <link rel="stylesheet" href="{{ asset('css/custom-fixes.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/show-post-fixes.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     <style>

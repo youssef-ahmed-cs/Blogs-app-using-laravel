@@ -1,0 +1,13 @@
+.show-page-post-card {
+    max-width: 680px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 20px !important;
+}
+
+.show-page-post-card.retro-theme {
+    background: rgba(34, 0, 51, 0.95) !important;
+    border: 2px solid #FF11A7 !important;
+    box-shadow: 0 0 20px #FF11A7 !important;
+}

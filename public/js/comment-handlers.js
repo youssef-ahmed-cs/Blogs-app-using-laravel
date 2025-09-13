@@ -1,4 +1,9 @@
 $(document).ready(function() {
+    // Reset any stuck loading buttons on page load
+    $('.new-comment-form button[type="submit"]').each(function() {
+        $(this).prop('disabled', false).html('إضافة');
+    });
+    
     // Handle new comment form submission (top-level comments)
     $('.new-comment-form').on('submit', function(e) {
         e.preventDefault();
@@ -9,7 +14,7 @@ $(document).ready(function() {
         // Show loading indicator
         const submitBtn = form.find('button[type="submit"]');
         const originalBtnText = submitBtn.html();
-        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...');
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> إضافة...');
         
         $.ajax({
             url: url,
@@ -43,8 +48,8 @@ $(document).ready(function() {
                             <img src="${data.comment.user_image}" class="rounded-circle" width="32" height="32" alt="avatar">
                         </a>
                         <div class="flex-grow-1">
-                            <div class="comment-content">
-                                <div class="comment-header">
+                            <div class="comment-bubble p-2 rounded">
+                                <div class="comment-header d-flex justify-content-between align-items-start">
                                     <strong>${data.comment.user_name}</strong>
                                     <small class="text-muted ms-2">Just now</small>
                                 </div>
@@ -105,14 +110,45 @@ $(document).ready(function() {
                 // Reset submit button
                 submitBtn.prop('disabled', false).html(originalBtnText);
                 
-                // Add comment anyway and reload page after delay
+                // Clear the input field
+                const content = form.find('input[name="content"]').val();
                 form.find('input[name="content"]').val('');
-                alert('Your comment was submitted but requires page reload to display');
                 
-                // Reload page after 2 seconds
-                setTimeout(function() {
-                    window.location.reload();
-                }, 2000);
+                // Create simple comment directly in DOM without reload
+                const timestamp = new Date().toLocaleTimeString();
+                const userImage = form.find('img').attr('src');
+                const userName = $('meta[name="user-name"]').attr('content') || 'أنت';
+                
+                // Create basic comment HTML
+                const simpleComment = $('<div class="comment-container"></div>');
+                simpleComment.html(`
+                    <div class="comment-item d-flex mb-2">
+                        <a href="#" class="me-2">
+                            <img src="${userImage}" class="rounded-circle" width="32" height="32">
+                        </a>
+                        <div class="flex-grow-1">
+                            <div class="comment-bubble p-2 rounded">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <strong>${userName}</strong>
+                                    <small class="text-muted ms-2">للتو</small>
+                                </div>
+                                <p class="mb-1">${content}</p>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                
+                // Add the comment to the DOM
+                $('.comments-list').prepend(simpleComment);
+                
+                // Update comment count
+                const countElement = $('.comment-section .card-header');
+                if (countElement.length) {
+                    const currentText = countElement.text();
+                    const currentCount = parseInt(currentText.match(/\d+/)[0]);
+                    const newCount = currentCount + 1;
+                    countElement.text(currentText.replace(/\d+/, newCount));
+                }
             }
         });
     });

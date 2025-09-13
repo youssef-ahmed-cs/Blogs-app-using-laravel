@@ -4,8 +4,8 @@
              class="rounded-circle profile-avatar" width="32" height="32">
     </a>
     <div class="flex-grow-1">
-        <div class="comment-content">
-            <div class="comment-header">
+        <div class="comment-bubble p-2 rounded">
+            <div class="comment-header d-flex justify-content-between align-items-start">
                 <strong>{{ $comment->user->name }}</strong>
                 <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
             </div>
