@@ -32,9 +32,7 @@
 
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" required>
-                            {{ old('description', $post->description) }}
-                        </textarea>
+                        <textarea class="form-control" id="description" name="description" rows="3" required>{{ trim(old('description', $post->description)) }}</textarea>
                     </div>
 
                     <div class="mb-3">

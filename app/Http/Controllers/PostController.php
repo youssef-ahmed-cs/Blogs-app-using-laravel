@@ -114,12 +114,13 @@ public function index()
         // Validate request
         $request->validate([
             'quote' => 'nullable|string|max:500',
+            'title' => 'nullable|string|max:255',
         ]);
         
         // Create a new post as a reshare
         $newPost = new Post();
-        $newPost->user_id = auth()->id();
-        $newPost->title = $request->has('title') ? $request->title : null;
+        $newPost->user_id = Auth::id();
+        $newPost->title = $request->has('title') ? $request->title : 'Reshared: ' . substr($post->title ?? '', 0, 240);
         $newPost->description = $post->title ?? ''; // Use original post title as description
         $newPost->quote = $request->quote ?? ''; // Store the quote in the dedicated field
         $newPost->original_post_id = $post->id;
@@ -189,20 +190,22 @@ public function index()
         }
 
         $request->validate([
-            'content' => 'required|max:1000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $data = [
-            'content' => $request->input('content'),
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
         ];
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('image_post')) {
             // Delete old image if exists
-            if ($post->image) {
-                Storage::disk('public')->delete($post->image);
+            if ($post->image_post) {
+                Storage::disk('public')->delete($post->image_post);
             }
-            $data['image'] = $request->file('image')->store('posts', 'public');
+            $data['image_post'] = $request->file('image_post')->store('posts', 'public');
         }
 
         $post->update($data);

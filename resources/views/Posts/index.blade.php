@@ -3,7 +3,7 @@
 @section('title', 'Home - FaceBog')
 
 @section('content')
-<div class="container-fluid px-0 py-4" style="background-color: #f0f2f5;">
+<div class="container-fluid px-0 py-4">
     <div class="row justify-content-center mx-0">
         <div class="col-lg-6 col-md-8 home-feed" style="padding-bottom: 30px; padding-top: 10px;">
             <!-- Main content area -->
@@ -55,16 +55,19 @@
                 
                 /* Reshared post styles */
                 .reshared-post-card {
-                    border-left: 3px solid #3b5998;
+                    border-left: 3px solid #FF11A7;
                 }
                 .reshared-post {
-                    background-color: #f8f9fa;
                     border-radius: 8px;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    transition: transform 0.2s ease;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+                    transition: transform 0.3s ease;
+                    color: #fff;
+                    background: rgba(34, 0, 51, 0.8);
+                    border: 1px solid #FF11A7;
                 }
                 .reshared-post:hover {
                     transform: translateY(-2px);
+                    box-shadow: 0 0 15px #FF11A7;
                 }
             </style>
             @endpush
@@ -73,9 +76,9 @@
             <!-- Posts Feed -->
             @forelse($posts as $post)
             <!-- Individual Post Container -->
-            <div class="post-container">
+            <div class="post-container fade-in-up">
                 <div class="card post-card {{ $post->isReshare() ? 'reshared-post-card' : '' }}" id="post-{{ $post->id }}">
-                <div class="card-header bg-white border-0">
+                <div class="card-header border-0">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
                             <a href="{{ route('profile.public', $post->user->id) }}" class="text-decoration-none me-2">
@@ -84,7 +87,7 @@
                             </a>
                             <div>
                                 <h6 class="mb-0 fw-bold">
-                                    <a href="{{ route('profile.public', $post->user->id) }}" class="text-decoration-none text-dark">
+                                    <a href="{{ route('profile.public', $post->user->id) }}" class="text-decoration-none">
                                         {{ $post->user->name }}
                                     </a>
                                 </h6>
@@ -135,7 +138,7 @@
                             </a>
                             <div>
                                 <h6 class="mb-0 fw-bold">
-                                    <a href="{{ route('profile.public', $post->originalPost->user->id) }}" class="text-decoration-none text-dark">
+                                    <a href="{{ route('profile.public', $post->originalPost->user->id) }}" class="text-decoration-none">
                                         {{ $post->originalPost->user->name }}
                                     </a>
                                 </h6>
@@ -149,7 +152,7 @@
                         <p class="mb-3 small">{{ $post->originalPost->description }}</p>
 
                         @if($post->originalPost->image_post)
-                        <div class="post-image-container">
+                        <div class="post-image-container post-img-container">
                             <img src="{{ asset('storage/'.$post->originalPost->image_post) }}" 
                                  class="img-fluid w-100" alt="Original Post Image">
                         </div>
@@ -163,7 +166,7 @@
                     <p class="mb-3 post-content">{{ $post->description }}</p>
 
                     @if($post->image_post)
-                    <div class="post-image-container">
+                    <div class="post-image-container post-img-container">
                         <img src="{{ asset('storage/'.$post->image_post) }}" 
                              class="img-fluid w-100" alt="Post Image">
                     </div>
@@ -411,8 +414,11 @@
 .post-container {
     margin-bottom: 16px !important;
     width: 100%;
+    max-width: 680px;
     background-color: transparent;
     padding: 0;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Pagination */

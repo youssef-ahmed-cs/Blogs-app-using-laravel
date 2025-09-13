@@ -1,0 +1,727 @@
+/* Retro Theme CSS */
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+
+/* Background styles */
+body.retro-theme {
+    background: radial-gradient(ellipse at center, rgba(127,0,173,0.6) 0%,
+      rgba(0,0,0,0.8) 60%, 
+      rgba(0,0,0,1) 90%), 
+      url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/31787/stars.jpg);
+    background-size: cover;
+    background-attachment: fixed;
+    color: white;
+}
+
+/* Card styling */
+.retro-theme .card {
+    background: rgba(34, 0, 51, 0.8);
+    border: 2px solid #FF11A7;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #FF11A7;
+}
+
+.retro-theme .card-header {
+    background-color: rgba(255, 17, 167, 0.3);
+    border-bottom: 1px solid #FF11A7;
+}
+
+.retro-theme .card-footer {
+    background-color: rgba(255, 17, 167, 0.1);
+    border-top: 1px solid #FF11A7;
+}
+
+/* Fix text visibility */
+.retro-theme .card,
+.retro-theme .post-card,
+.retro-theme .reshared-post {
+    color: #fff !important;
+    background: rgba(34, 0, 51, 0.8) !important;
+}
+
+.retro-theme .card a:not(.btn),
+.retro-theme .post-card a:not(.btn),
+.retro-theme .reshared-post a:not(.btn) {
+    color: #FF79C6 !important;
+}
+
+.retro-theme .card .text-dark,
+.retro-theme .post-card .text-dark,
+.retro-theme .reshared-post .text-dark,
+.retro-theme .reshared-post h6,
+.retro-theme .reshared-post p,
+.retro-theme .reshared-post div,
+.retro-theme .reshared-post small,
+.retro-theme .profile-info .text-dark,
+.retro-theme .fb-profile-name,
+.retro-theme .fb-profile-section h1,
+.retro-theme .fb-profile-section h2,
+.retro-theme .fb-profile-section h3,
+.retro-theme .fb-profile-section h4,
+.retro-theme .fb-profile-section h5,
+.retro-theme .fb-profile-section h6,
+.retro-theme .fb-profile-section p,
+.retro-theme .fb-profile-section div,
+.retro-theme .fb-profile-section span,
+.retro-theme .fb-profile-section a:not(.btn),
+.retro-theme .fb-profile-details h1,
+.retro-theme .post-card p,
+.retro-theme .post-card h1,
+.retro-theme .post-card h2, 
+.retro-theme .post-card h3,
+.retro-theme .post-card h4,
+.retro-theme .post-card h5,
+.retro-theme .post-card h6,
+.retro-theme .post-card div,
+.retro-theme .post-card span,
+.retro-theme .fb-profile-details h2,
+.retro-theme .fb-profile-details h3,
+.retro-theme .fb-profile-details h4,
+.retro-theme .fb-profile-details h5,
+.retro-theme .fb-profile-details h6,
+.retro-theme .fb-profile-details p,
+.retro-theme .fb-profile-details div,
+.retro-theme .fb-profile-details span,
+.retro-theme .fb-profile-details a:not(.btn),
+.retro-theme .comment-item,
+.retro-theme .comment-item p,
+.retro-theme .comment-item div,
+.retro-theme .comment-item span,
+.retro-theme .comment-bubble,
+.retro-theme .comment-content,
+.retro-theme .comment-header strong,
+.retro-theme .comment-actions button small {
+    color: #fff !important;
+}
+
+/* Enhance visibility for selected text */
+.retro-theme ::selection {
+    background-color: #FF11A7 !important;
+    color: white !important;
+}
+
+.retro-theme .text-muted {
+    color: #BD93F9 !important;
+}
+
+/* Typography */
+.retro-theme h1, 
+.retro-theme h2, 
+.retro-theme h3, 
+.retro-theme .navbar-brand {
+    font-family: 'Monoton', monospace;
+    animation: neon1 1.5s ease-in-out infinite alternate;
+}
+
+/* Neon animations */
+@keyframes neon1 {
+    from {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #FF11A7, 0 0 70px #FF11A7, 0 0 80px #FF11A7, 0 0 100px #FF11A7;
+    }
+    to {
+        text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #FF11A7, 0 0 35px #FF11A7, 0 0 40px #FF11A7, 0 0 50px #FF11A7;
+    }
+}
+
+/* Form controls */
+.retro-theme .form-control {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #FF11A7;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.retro-theme .form-control:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: #FF11A7;
+    box-shadow: 0 0 0 0.2rem rgba(255, 17, 167, 0.25);
+    color: white;
+}
+
+/* Buttons */
+.retro-theme .btn-primary {
+    background-color: transparent;
+    border: 2px solid #FF11A7;
+    color: white;
+}
+
+.retro-theme .btn-primary:hover,
+.retro-theme .btn-primary:focus {
+    background: #FF11A7;
+    box-shadow: 0 0 10px #FF11A7, 0 0 40px #FF11A7;
+    border-color: #FF11A7;
+}
+
+.retro-theme .btn-outline-primary {
+    border: 2px solid #FF11A7;
+    color: #FF11A7;
+}
+
+.retro-theme .btn-outline-primary:hover,
+.retro-theme .btn-outline-primary:focus {
+    background-color: #FF11A7;
+    color: white;
+    box-shadow: 0 0 10px #FF11A7, 0 0 20px #FF11A7;
+}
+
+/* Navbar */
+.retro-theme .navbar {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(127, 0, 173, 0.8), rgba(0, 0, 0, 0.9));
+    border-bottom: 1px solid #FF11A7;
+    box-shadow: 0 0 10px #FF11A7;
+}
+
+.retro-theme .navbar-dark .navbar-nav .nav-link {
+    color: #fff;
+    text-shadow: 0 0 5px #FF11A7;
+}
+
+/* Grid styling */
+.retro-theme .grid-bg {
+    background-size: 40px 40px;    
+    background-image: repeating-linear-gradient(0deg, #60DCD3, #60DCD3 1px, transparent 1px, transparent 40px),
+                     repeating-linear-gradient(-90deg, #60DCD3, #60DCD3 1px, transparent 1px, transparent 40px);
+    opacity: 0.1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Links */
+.retro-theme a:not(.btn):not(.nav-link):not(.navbar-brand) {
+    color: #FF11A7;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.retro-theme a:not(.btn):not(.nav-link):not(.navbar-brand):hover {
+    text-shadow: 0 0 10px #FF11A7;
+}
+
+/* Post cards */
+.retro-theme .post-card {
+    background: rgba(34, 0, 51, 0.95) !important; /* Dark purple/black background */
+    border: 2px solid #FF11A7;
+    border-radius: 10px;
+    margin-bottom: 35px; /* Increased margin for better spacing */
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px #FF11A7;
+    color: #ffffff !important; /* Ensure text is white */
+    max-width: 680px !important; /* Set fixed width for posts */
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
+}
+
+.retro-theme .post-card:hover {
+    box-shadow: 0 0 20px #FF11A7;
+    transform: translateY(-5px);
+}
+
+/* Post card sections */
+.retro-theme .post-card .card-header,
+.retro-theme .post-card .card-body,
+.retro-theme .post-card .card-footer {
+    background-color: rgba(34, 0, 51, 0.95) !important;
+    color: #fff !important;
+}
+
+/* Post container spacing */
+.retro-theme .post-container {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    position: relative;
+}
+
+/* Post images */
+.retro-theme .post-img-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.retro-theme .post-img-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 3px solid #FF11A7;
+    box-shadow: 0 0 15px #FF11A7, inset 0 0 15px #FF11A7;
+    z-index: 1;
+    pointer-events: none;
+    animation: pulse-border 2s infinite alternate;
+}
+
+@keyframes pulse-border {
+    from {
+        box-shadow: 0 0 5px #FF11A7, inset 0 0 5px #FF11A7;
+    }
+    to {
+        box-shadow: 0 0 15px #FF11A7, inset 0 0 10px #FF11A7;
+    }
+}
+
+/* Comments */
+.retro-theme .comments-container {
+    background: rgba(34, 0, 51, 0.95) !important; /* Dark background */
+    border: 2px solid #FF11A7;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #FF11A7;
+    color: #fff !important;
+}
+
+.retro-theme .card-header {
+    background: rgba(255, 17, 167, 0.3) !important;
+    color: #fff !important;
+    font-weight: bold;
+    border-bottom: 1px solid #FF11A7;
+}
+
+.retro-theme .comment-item {
+    border-bottom: 1px solid rgba(255, 17, 167, 0.3);
+    position: relative;
+    padding: 12px;
+    margin-bottom: 15px;
+    color: #fff !important;
+    background: rgba(255, 17, 167, 0.1);
+    border-radius: 8px;
+}
+
+.retro-theme .comment-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 1px solid #FF11A7;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0.7;
+    box-shadow: 0 0 10px rgba(255, 17, 167, 0.3);
+}
+
+/* Comment content styling */
+.retro-theme .comment-content p,
+.retro-theme .comment-header,
+.retro-theme .comment-actions,
+.retro-theme .reply-thread,
+.retro-theme .comment-item a,
+.retro-theme .comment-item span,
+.retro-theme .comment-item div {
+    color: #fff !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* Comment form styling */
+.retro-theme .new-comment-form input,
+.retro-theme .reply-form input {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid #FF11A7 !important;
+    color: #fff !important;
+}
+
+.retro-theme .reply-thread {
+    border-left: 2px solid #FF11A7 !important;
+    padding-left: 15px;
+    margin-top: 10px;
+}
+
+.retro-theme .btn-link.text-primary,
+.retro-theme .view-replies-link,
+.retro-theme .text-primary {
+    color: #FF79C6 !important;
+    text-shadow: 0 0 5px #FF11A7;
+}
+
+.retro-theme .comment-input {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #FF11A7;
+    color: white;
+    box-shadow: 0 0 5px #FF11A7;
+}
+
+/* Like buttons */
+.retro-theme .like-btn.active,
+.retro-theme .like-btn.text-danger {
+    color: #FF11A7 !important;
+    text-shadow: 0 0 5px #FF11A7;
+}
+
+/* Dropdown menus */
+.retro-theme .dropdown-menu {
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid #FF11A7;
+    box-shadow: 0 0 10px #FF11A7;
+}
+
+.retro-theme .dropdown-item {
+    color: white;
+}
+
+.retro-theme .dropdown-item:hover {
+    background-color: rgba(255, 17, 167, 0.2);
+    color: #FF11A7;
+}
+
+/* Profile styling */
+.retro-theme .profile-header {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cover image styling */
+.retro-theme .profile-cover {
+    position: relative;
+    overflow: hidden;
+}
+
+.retro-theme .profile-cover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 4px solid #FF11A7;
+    box-shadow: 0 0 20px #FF11A7, inset 0 0 15px #FF11A7;
+    z-index: 1;
+    pointer-events: none;
+    animation: glow-border 3s infinite alternate;
+}
+
+@keyframes glow-border {
+    from {
+        box-shadow: 0 0 10px #FF11A7, inset 0 0 10px #FF11A7;
+    }
+    to {
+        box-shadow: 0 0 25px #FF11A7, inset 0 0 20px #FF11A7;
+    }
+}
+
+/* Profile image styling */
+.retro-theme .profile-avatar {
+    box-shadow: 0 0 15px #FF11A7;
+}
+
+.retro-theme .profile-avatar img {
+    box-shadow: 0 0 10px #FF11A7;
+}
+
+/* All profile images throughout the site */
+.retro-theme img.rounded-circle,
+.retro-theme .fb-profile-avatar,
+.retro-theme .profile-avatar img {
+    border: none !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 15px #FF11A7 !important;
+    background: rgba(34, 0, 51, 0.8) !important;
+}
+
+/* Force remove any square borders on profile images */
+.retro-theme img[width="40"],
+.retro-theme img[height="40"],
+.retro-theme .comment-img img {
+    border: none !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 10px #FF11A7 !important;
+}
+
+/* Profile info section */
+.retro-theme .profile-info,
+.retro-theme .card {
+    background: rgba(34, 0, 51, 0.8);
+    border: 2px solid #FF11A7;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px #FF11A7;
+}
+
+.retro-theme .fb-profile-section {
+    background: rgba(34, 0, 51, 0.8) !important;
+    color: #fff !important;
+    border: 2px solid #FF11A7;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #FF11A7;
+}
+
+/* Background override for all FB profile components */
+.retro-theme .fb-cover-container,
+.retro-theme .fb-profile-details,
+.retro-theme .fb-profile-name,
+.retro-theme .fb-profile-info,
+.retro-theme .profile-tabs,
+.retro-theme .fb-btn-img,
+.retro-theme .avatar-camera-btn {
+    background: rgba(34, 0, 51, 0.8) !important;
+    color: #fff !important;
+}
+
+.retro-theme .fb-btn-img:hover,
+.retro-theme .avatar-camera-btn:hover {
+    background: rgba(255, 17, 167, 0.3) !important;
+}
+
+.retro-theme .profile-stats {
+    background: rgba(255, 17, 167, 0.15);
+    border-top: 1px solid #FF11A7;
+    border-bottom: 1px solid #FF11A7;
+    padding: 10px 0;
+}
+
+.retro-theme .profile-bio {
+    padding: 15px 0;
+    color: #f5f5f5;
+}
+
+/* Profile actions */
+.retro-theme .profile-actions .btn {
+    background: transparent;
+    border: 2px solid #FF11A7;
+    color: white;
+    margin: 0 5px;
+    transition: all 0.3s ease;
+}
+
+.retro-theme .profile-actions .btn:hover {
+    background: #FF11A7;
+    box-shadow: 0 0 10px #FF11A7, 0 0 20px #FF11A7;
+}
+
+/* Profile tabs */
+.retro-theme .profile-tabs .nav-link {
+    color: white;
+    border-bottom: 3px solid transparent;
+}
+
+.retro-theme .profile-tabs .nav-link.active {
+    border-bottom: 3px solid #FF11A7;
+    color: #FF11A7;
+    text-shadow: 0 0 5px #FF11A7;
+}
+
+/* Toggle button for retro theme */
+#retro-theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #FF11A7;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 0 10px #FF11A7;
+    border: none;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+#retro-theme-toggle:hover {
+    box-shadow: 0 0 20px #FF11A7;
+    transform: scale(1.1);
+}
+
+/* Share Modal Styling */
+.retro-theme #shareModal .modal-content,
+.retro-theme #sharePostModal .modal-content {
+    background: rgba(34, 0, 51, 0.95);
+    border: 2px solid #FF11A7;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #FF11A7;
+    color: white;
+}
+
+.retro-theme #shareModal .modal-header,
+.retro-theme #sharePostModal .modal-header {
+    border-bottom: 1px solid #FF11A7;
+    background-color: rgba(255, 17, 167, 0.2);
+}
+
+.retro-theme #shareModal .modal-title,
+.retro-theme #sharePostModal .modal-title {
+    font-family: 'Monoton', monospace;
+    color: #fff;
+    text-shadow: 0 0 10px #FF11A7;
+}
+
+.retro-theme .share-preview {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #FF11A7 !important;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 17, 167, 0.3);
+}
+
+.retro-theme .share-options {
+    margin-top: 16px;
+}
+
+.retro-theme .share-platform-btn,
+.retro-theme .copy-link-btn {
+    background: transparent;
+    border: 2px solid #FF11A7;
+    color: white;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 10px 16px;
+}
+
+.retro-theme .share-platform-btn:hover,
+.retro-theme .copy-link-btn:hover {
+    background: rgba(255, 17, 167, 0.3);
+    box-shadow: 0 0 15px #FF11A7;
+    transform: translateY(-2px);
+    color: white;
+}
+
+.retro-theme .share-platform-btn[data-platform="facebook"] {
+    border-color: #4267B2;
+    color: #4267B2;
+}
+
+.retro-theme .share-platform-btn[data-platform="facebook"]:hover {
+    background-color: rgba(66, 103, 178, 0.2);
+    box-shadow: 0 0 15px #4267B2;
+    color: #fff;
+}
+
+.retro-theme .share-platform-btn[data-platform="twitter"] {
+    border-color: #1DA1F2;
+    color: #1DA1F2;
+}
+
+.retro-theme .share-platform-btn[data-platform="twitter"]:hover {
+    background-color: rgba(29, 161, 242, 0.2);
+    box-shadow: 0 0 15px #1DA1F2;
+    color: #fff;
+}
+
+.retro-theme .share-platform-btn[data-platform="whatsapp"] {
+    border-color: #25D366;
+    color: #25D366;
+}
+
+.retro-theme .share-platform-btn[data-platform="whatsapp"]:hover {
+    background-color: rgba(37, 211, 102, 0.2);
+    box-shadow: 0 0 15px #25D366;
+    color: #fff;
+}
+
+.retro-theme .share-platform-btn[data-platform="telegram"] {
+    border-color: #0088cc;
+    color: #0088cc;
+}
+
+.retro-theme .share-platform-btn[data-platform="telegram"]:hover {
+    background-color: rgba(0, 136, 204, 0.2);
+    box-shadow: 0 0 15px #0088cc;
+    color: #fff;
+}
+
+.retro-theme .share-stats {
+    border-top: 1px solid #FF11A7 !important;
+    color: #fff;
+}
+
+.retro-theme .share-type-tabs .nav-tabs {
+    border-bottom: 1px solid #FF11A7;
+}
+
+.retro-theme .share-type-tabs .nav-link {
+    color: white;
+    border: none;
+    padding: 10px 15px;
+}
+
+.retro-theme .share-type-tabs .nav-link.active {
+    background-color: rgba(255, 17, 167, 0.2);
+    color: #FF11A7;
+    border: none;
+    border-bottom: 3px solid #FF11A7;
+    text-shadow: 0 0 5px #FF11A7;
+}
+
+.retro-theme .copy-alert {
+    background-color: rgba(40, 167, 69, 0.2) !important;
+    border: 1px solid #28a745 !important;
+    color: #fff !important;
+}
+
+.retro-theme .quote-input-container .form-control {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #FF11A7;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.retro-theme .quote-input-container .form-control:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: #FF11A7;
+    box-shadow: 0 0 0 0.2rem rgba(255, 17, 167, 0.25);
+}
+
+.retro-theme .reshare-btn {
+    background-color: transparent;
+    border: 2px solid #FF11A7;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.retro-theme .reshare-btn:hover {
+    background: rgba(255, 17, 167, 0.3);
+    box-shadow: 0 0 15px #FF11A7;
+}
+
+/* Create Post Modal Styling */
+.retro-theme #createPostModal .modal-content {
+    background: rgba(34, 0, 51, 0.95);
+    border: 2px solid #FF11A7;
+    border-radius: 10px !important;
+    box-shadow: 0 0 20px #FF11A7 !important;
+    color: white;
+}
+
+.retro-theme #createPostModal .modal-header {
+    border-bottom: 1px solid #FF11A7;
+    background-color: rgba(255, 17, 167, 0.2);
+}
+
+.retro-theme #createPostModal .modal-title {
+    font-family: 'Monoton', monospace;
+    color: #fff;
+    text-shadow: 0 0 10px #FF11A7;
+}
+
+.retro-theme #createPostModal .modal-footer {
+    border-top: 1px solid #FF11A7;
+    background-color: rgba(255, 17, 167, 0.1);
+}
+
+.retro-theme .create-post-card {
+    background: rgba(34, 0, 51, 0.8) !important;
+    border: 2px solid #FF11A7 !important;
+    box-shadow: 0 0 15px #FF11A7 !important;
+}
+
+.retro-theme .create-post-card button {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid #FF11A7 !important;
+    color: white !important;
+}
+
+.retro-theme .create-post-card button:hover {
+    background-color: rgba(255, 17, 167, 0.2) !important;
+    box-shadow: 0 0 10px rgba(255, 17, 167, 0.5);
+}

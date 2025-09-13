@@ -1,0 +1,44 @@
+/* Override for the standard theme reshared post */
+.reshared-post {
+    background: rgba(34, 0, 51, 0.8) !important;
+    border: 1px solid #FF11A7 !important;
+    box-shadow: 0 0 10px #FF11A7 !important;
+    color: #fff !important;
+}
+
+.reshared-post h6, 
+.reshared-post p,
+.reshared-post a, 
+.reshared-post div, 
+.reshared-post small {
+    color: #fff !important;
+}
+
+.reshared-post a:not(.btn) {
+    color: #FF79C6 !important;
+}
+
+.reshared-post .text-muted {
+    color: #BD93F9 !important;
+}
+
+/* Make all posts have the same width */
+.post-container {
+    max-width: 680px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Fix the white text on white background issue */
+.reshared-post-card {
+    border-left: 3px solid #FF11A7 !important;
+    background: transparent !important;
+}
+
+/* Better styling for comment error alert */
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.2) !important;
+    color: #ff6b6b !important;
+    border-color: #ff6b6b !important;
+}

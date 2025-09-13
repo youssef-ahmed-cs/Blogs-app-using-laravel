@@ -31,14 +31,14 @@
             
             @if($post->isReshare() && $post->originalPost)
             <!-- Reshared Post -->
-            <div class="reshared-post border rounded p-3 mb-3 bg-light">
+            <div class="reshared-post border rounded p-3 mb-3">
                 <div class="d-flex align-items-center mb-2">
                     <a href="{{ route('profile.public', $post->originalPost->user->id) }}" class="text-decoration-none me-2">
                         <img src="{{ $post->originalPost->user->profile?->profile_image ? asset('storage/'.$post->originalPost->user->profile->profile_image) : asset('images/default-avatar.png') }}" 
                             alt="Profile" width="40" height="40" class="rounded-circle">
                     </a>
                     <div>
-                        <a href="{{ route('profile.public', $post->originalPost->user->id) }}" class="fw-bold text-dark text-decoration-none">
+                        <a href="{{ route('profile.public', $post->originalPost->user->id) }}" class="fw-bold text-decoration-none">
                             {{ $post->originalPost->user->name }}
                         </a><br>
                         <small class="text-muted">{{ $post->originalPost->created_at->diffForHumans() }}</small>
@@ -51,7 +51,7 @@
                 <p class="mb-3">{{ $post->originalPost->description }}</p>
 
                 @if($post->originalPost->image_post)
-                <div class="post-img mb-3 text-center">
+                <div class="post-img mb-3 text-center post-img-container">
                     <img src="{{ asset('storage/'.$post->originalPost->image_post) }}" 
                          class="img-fluid rounded" style="max-height:350px; object-fit:cover;">
                 </div>
@@ -66,7 +66,7 @@
 
             <!-- صورة البوست -->
             @if($post->image_post)
-                <div class="post-img mb-3 text-center">
+                <div class="post-img mb-3 text-center post-img-container">
                     <img src="{{ asset('storage/' . $post->image_post) }}" class="img-fluid rounded" style="max-height:400px; object-fit:cover;">
                 </div>
             @endif
@@ -92,7 +92,7 @@
     </div>
 
     <!-- التعليقات -->
-    <div class="card shadow-sm comment-section mb-4">
+    <div class="card shadow-sm comment-section mb-4 comments-container">
         <div class="card-header fw-bold">💬 التعليقات ({{ $post->comments->count() }})</div>
         <div class="card-body">
 
@@ -146,11 +146,15 @@
 }
 .post-quote {
     font-style: italic;
-    padding: 10px 15px;
+    padding: 12px 18px;
     border-left: 4px solid #3b5998;
     margin-bottom: 15px;
     background-color: #f0f2f5;
     border-radius: 0 8px 8px 0;
+    font-size: 1.05rem;
+    color: #444;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 /* Share Button Styling */
@@ -266,7 +270,9 @@
                     @auth
                     <div class="mb-3">
                         <div class="quote-input-container">
-                            <textarea class="form-control quote-input" placeholder="أضف تعليقًا للمشاركة..." rows="2"></textarea>
+                            <label for="quote-textarea" class="form-label text-muted mb-1">أضف تعليقك للمشاركة:</label>
+                            <textarea id="quote-textarea" class="form-control quote-input" placeholder="اكتب تعليقك هنا..." rows="3"></textarea>
+                            <small class="text-muted">سيظهر تعليقك فوق المنشور المعاد مشاركته</small>
                         </div>
                     </div>
                     @endauth
@@ -375,6 +381,7 @@
 
 @push('scripts')
 <!-- The reply interactions are handled in the shared partial's script and global handlers -->
+<script src="{{ asset('js/comment-handlers.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Update view count when post is shown
@@ -395,24 +402,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up tooltip for copy link button
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('shareModal'));
-                    modal.hide();
-                    
-                    // Optionally redirect to the new post
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    }
-                }
-            })
-            .catch(error => console.error('Error resharing post:', error));
-        });
-    });
-    
     // Copy link button
+    const copyButton = document.querySelector('.copy-link-btn');
     if (copyButton) {
         copyButton.addEventListener('click', function() {
             // Copy the post URL to clipboard

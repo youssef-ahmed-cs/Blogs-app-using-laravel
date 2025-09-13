@@ -1,7 +1,7 @@
 <div id="comment-{{ $comment->id }}" class="comment-item d-flex mb-2 animate__animated animate__fadeIn">
     <a href="{{ route('profile.public', $comment->user->id) }}" class="me-2">
         <img src="{{ $comment->user->profile?->profile_image ? asset('storage/'.$comment->user->profile->profile_image) : 'https://via.placeholder.com/32x32.png?text=U' }}" 
-             class="rounded-circle" width="32" height="32">
+             class="rounded-circle profile-avatar" width="32" height="32">
     </a>
     <div class="flex-grow-1">
         <div class="comment-content">

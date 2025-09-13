@@ -1,0 +1,84 @@
+/* Custom dark background with modern animation */
+.modern-bg {
+    background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #252941);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Card animations */
+.post-card {
+    background-color: #ffffff !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    border: none !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.post-container {
+    padding: 10px !important;
+    transition: transform 0.3s ease;
+}
+
+.post-card .card-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.post-card .card-body {
+    background-color: #ffffff !important;
+}
+
+/* Override any existing background colors */
+.container-fluid.px-0.py-4 {
+    background-color: transparent !important;
+}
+
+/* Floating elements animation */
+.floating-element {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Custom animation for the post cards */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 30px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Animation delays for cascading effect */
+.post-container:nth-child(1) { animation-delay: 0.1s; }
+.post-container:nth-child(2) { animation-delay: 0.2s; }
+.post-container:nth-child(3) { animation-delay: 0.3s; }
+.post-container:nth-child(4) { animation-delay: 0.4s; }
+.post-container:nth-child(5) { animation-delay: 0.5s; }

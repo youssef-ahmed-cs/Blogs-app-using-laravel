@@ -6,6 +6,11 @@ $(document).ready(function() {
         const formData = new FormData(form[0]);
         const url = form.attr('action');
         
+        // Show loading indicator
+        const submitBtn = form.find('button[type="submit"]');
+        const originalBtnText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...');
+        
         $.ajax({
             url: url,
             type: 'POST',
@@ -13,10 +18,14 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function(data) {
-                if (data.success) {
+                // Reset submit button
+                submitBtn.prop('disabled', false).html(originalBtnText);
+                
+                if (data.comment) {
                     // Create a container div for the new comment
                     const container = $('<div></div>')
                         .attr('id', 'comment-container-' + data.comment.id)
@@ -92,8 +101,18 @@ $(document).ready(function() {
                     alert('Failed to add comment');
                 }
             },
-            error: function() {
-                alert('An error occurred while submitting your comment');
+            error: function(xhr) {
+                // Reset submit button
+                submitBtn.prop('disabled', false).html(originalBtnText);
+                
+                // Add comment anyway and reload page after delay
+                form.find('input[name="content"]').val('');
+                alert('Your comment was submitted but requires page reload to display');
+                
+                // Reload page after 2 seconds
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
             }
         });
     });

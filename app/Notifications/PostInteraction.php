@@ -48,6 +48,9 @@ class PostInteraction extends Notification
             $data['comment_id'] = $this->comment->id;
             $data['comment_content'] = substr($this->comment->content, 0, 100) . '...';
             $data['message'] = $this->user->name . ' commented on your post: "' . $postTitle . '"';
+        } elseif ($this->type === 'reshare') {
+            $data['message'] = $this->user->name . ' reshared your post: "' . $postTitle . '"';
+            $data['reshare_type'] = 'post_reshare';
         }
 
         return $data;

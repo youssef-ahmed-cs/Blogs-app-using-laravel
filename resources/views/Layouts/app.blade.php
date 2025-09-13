@@ -10,13 +10,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/retro-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom-fixes.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     <style>
     /* Global styles */
     body {
-        background-color: #f0f2f5;
+        background-color: #0f1726; /* Dark background color */
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+        overflow-x: hidden;
     }
 
     /* Ensure dropdown is visible and properly styled */
@@ -73,19 +78,21 @@
     .post-card {
         border-radius: 8px !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-        border: 1px solid rgba(0,0,0,0.04);
+        border: 1px solid rgba(255,255,255,0.2);
         margin-bottom: 0 !important;
         overflow: hidden;
-        background-color: #fff;
+        background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent background */
+        backdrop-filter: blur(5px); /* Apply blur effect behind the card */
         transition: none;
     }
     .post-card .card-header {
         padding: 12px 16px;
-        background-color: #fff;
-        border-bottom: 1px solid #f0f2f5;
+        background-color: transparent;
+        border-bottom: 1px solid rgba(240, 242, 245, 0.5);
     }
     .post-card .card-body {
         padding: 12px 16px 10px;
+        background-color: transparent;
     }
     .post-actions {
         border-top: 1px solid #f0f2f5;
@@ -146,8 +153,21 @@
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
-        border-top: 1px solid #f0f2f5;
+        border-top: 1px solid rgba(240, 242, 245, 0.5);
         margin-top: 8px;
+    }
+    
+    /* Transparent fluid container */
+    div.container-fluid {
+        background-color: rgba(173, 216, 230, 0.5); /* Light blue transparent background */
+    }
+    
+    /* Transparent post card styling */
+    .transparent-post-card {
+        background-color: transparent !important;
+        backdrop-filter: blur(0px) !important;
+        border: none !important;
+        box-shadow: none !important;
     }
     .post-actions .btn {
         flex: 1;
@@ -303,8 +323,8 @@
     }
     
     .post-card:hover {
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        transform: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        transform: translateY(-5px);
     }
     
     /* Main content container - full width */
@@ -312,6 +332,11 @@
         max-width: 100%;
         padding: 16px 0 !important;
         background-color: #f0f2f5;
+    }
+    
+    /* Transparent container styling */
+    div.container-fluid.px-0.py-4 {
+        background-color: transparent;
     }
     
     /* Post image container styling */
@@ -386,13 +411,42 @@
     .share-platform-btn i, .copy-link-btn i {
         font-size: 1.2rem;
     }
-</style>
 
+    /* Animated gradient background */
+body {
+    background: linear-gradient(135deg, #667eea, #764ba2, #f6d365, #fda085);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    overflow-x: hidden;
+}
+
+/* Floating circles */
+.bg-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+    animation: floatCircles linear infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes floatCircles {
+    0% { transform: translateY(0) translateX(0); opacity: 0.5; }
+    50% { transform: translateY(-300px) translateX(150px); opacity: 1; }
+    100% { transform: translateY(0) translateX(0); opacity: 0.5; }
+}
+
+</style>
 @stack('styles')
 
     @stack('styles')
 </head>
-<body class="{{ auth()->check() ? 'user-logged-in' : 'user-guest' }}">
+<body class="{{ auth()->check() ? 'user-logged-in' : 'user-guest' }} modern-bg">
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container d-flex justify-content-between align-items-center">
@@ -1010,6 +1064,22 @@ document.getElementById('auth-overlay').addEventListener('click', hideAuthCard);
 <!-- Bootstrap Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Background Animation Script -->
+<script src="{{ asset('js/background-animation.js') }}"></script>
+
+<!-- Post card animations -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply animations to post cards
+    const postCards = document.querySelectorAll('.post-card');
+    postCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('fade-in-up');
+        }, index * 100);
+    });
+});
+</script>
+
 <!-- Initialize Bootstrap Dropdowns -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1022,9 +1092,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Debug: Check if bootstrap is loaded
     console.log('Bootstrap version:', bootstrap.Dropdown.VERSION);
 });
+
+
 </script>
+
+<!-- Retro Theme Toggle Button -->
+<button id="retro-theme-toggle" title="Toggle Retro Theme">
+    <i class="bi bi-stars"></i>
+</button>
+
+<!-- Grid Background for Retro Theme -->
+<div class="grid-bg"></div>
 
 <!-- Stacked Scripts -->
 @stack('scripts')
+
+<script>
+// Set retro theme as default unless explicitly disabled
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('retroTheme') !== 'disabled') {
+        document.body.classList.add('retro-theme');
+        document.getElementById('retro-theme-toggle').innerHTML = '<i class="bi bi-sun"></i>';
+        localStorage.setItem('retroTheme', 'enabled');
+    }
+});
+
+// Toggle retro theme
+document.getElementById('retro-theme-toggle').addEventListener('click', function() {
+    if (document.body.classList.contains('retro-theme')) {
+        document.body.classList.remove('retro-theme');
+        localStorage.setItem('retroTheme', 'disabled');
+        this.innerHTML = '<i class="bi bi-stars"></i>';
+    } else {
+        document.body.classList.add('retro-theme');
+        localStorage.setItem('retroTheme', 'enabled');
+        this.innerHTML = '<i class="bi bi-sun"></i>';
+    }
+});
+
+// Setup AJAX CSRF token
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
+</script>
 </body>
 </html>
