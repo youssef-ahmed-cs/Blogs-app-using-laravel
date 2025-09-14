@@ -29,20 +29,28 @@ class PostInteraction extends Notification
 
     public function toDatabase($notifiable)
     {
+        $postTitle = $this->post->title ?: $this->post->description;
+        if ($postTitle && strlen($postTitle) > 30) {
+            $postTitle = substr($postTitle, 0, 30) . '...';
+        }
+        
         $data = [
             'user_id' => $this->user->id,
             'user_name' => $this->user->name,
             'post_id' => $this->post->id,
-            'post_title' => $this->post->title,
+            'post_title' => $postTitle,
             'type' => $this->type,
         ];
 
         if ($this->type === 'like') {
-            $data['message'] = $this->user->name . ' أعجب بالبوست: "' . $this->post->title . '"';
+            $data['message'] = $this->user->name . ' liked your post: "' . $postTitle . '"';
         } elseif ($this->type === 'comment' && $this->comment) {
             $data['comment_id'] = $this->comment->id;
             $data['comment_content'] = substr($this->comment->content, 0, 100) . '...';
-            $data['message'] = $this->user->name . ' علّق على البوست: "' . $this->post->title . '"';
+            $data['message'] = $this->user->name . ' commented on your post: "' . $postTitle . '"';
+        } elseif ($this->type === 'reshare') {
+            $data['message'] = $this->user->name . ' reshared your post: "' . $postTitle . '"';
+            $data['reshare_type'] = 'post_reshare';
         }
 
         return $data;

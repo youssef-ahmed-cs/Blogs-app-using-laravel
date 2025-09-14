@@ -3,6 +3,7 @@
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
+use App\Models\Post;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
@@ -25,6 +26,8 @@ Route::controller(AuthController::class)->group(function () {
 
 // Public routes (accessible to everyone)
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::post('/posts/{post}/view', [PostController::class, 'recordView'])->name('posts.view');
+Route::get('/posts/{post}/share-preview', [PostController::class, 'sharePreview'])->name('posts.share-preview');
 Route::get('/profile/{id}', [ProfileController::class, 'public'])->name('profile.public');
 
 // Protected routes (require authentication)
@@ -42,6 +45,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     
+    // Share routes
+    Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
+    Route::post('/posts/{post}/reshare', [PostController::class, 'reshare'])->name('posts.reshare');
+    
     // Follow/Unfollow routes
     Route::post('/follow/{user}', [FollowController::class, 'follow'])->name('follow');
     Route::delete('/unfollow/{user}', [FollowController::class, 'unfollow'])->name('unfollow');
@@ -52,17 +59,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/{user}/cover-upload', [ProfileController::class, 'uploadCover'])->name('profile.cover.upload');
     Route::post('/profile/{user}/avatar-upload', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar.upload');
     
-    // Placeholder routes for non-implemented features
- Route::get('/notifications', [NotificationController::class, 'index'])
-    ->name('notifications.index')
-    ->middleware('auth');
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     
-    Route::get('/settings', function() { 
-        return redirect()->route('profile.show')->with('info', 'Use Profile Settings for now.'); 
-    })->name('settings.show');
+    // Route::get('/settings', function() { 
+    //     return redirect()->route('profile.show')->with('info', 'Use Profile Settings for now.'); 
+    // })->name('settings.show');
     
     // Dashboard route
     Route::get('/dashboard', function() {
         return redirect()->route('home');
     })->name('dashboard');
+});
+Route::middleware('auth')->group(function () {
+    Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
+    Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.updatePassword');
+    Route::delete('/settings/delete', [SettingsController::class, 'destroy'])->name('settings.destroy');
 });

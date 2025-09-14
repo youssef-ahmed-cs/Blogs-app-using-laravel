@@ -9,7 +9,8 @@ use Illuminate\Notifications\Notifiable;
 
 class Comment extends Model
 {
-    protected $fillable = ['user_id', 'content'];
+    use HasFactory, Notifiable;
+    protected $fillable = ['user_id', 'post_id', 'parent_id', 'content'];
 
     public function post()
     {

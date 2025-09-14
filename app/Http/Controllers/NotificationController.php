@@ -6,37 +6,58 @@ use App\Notifications\PostInteraction;
 use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    // عرض كل النوتيفيكشنز
+    /**
+     * Display user notifications with pagination
+     */
     public function index()
     {
-        $notifications = auth()->user()->notifications()->latest()->paginate(10);
+        $user = Auth::user();
+        $notifications = $user->notifications()->latest()->paginate(10);
+        
+        if (request()->ajax()) {
+            return response()->json([
+                'notifications' => view('notifications.partials.notification-items', compact('notifications'))->render(),
+                'nextPage' => $notifications->nextPageUrl()
+            ]);
+        }
+        
         return view('notifications.index', compact('notifications'));
     }
 
-    // تعليم Notification كمقروء
+    /**
+     * Mark a notification as read
+     */
     public function markAsRead($id)
     {
-        $notification = auth()->user()->notifications()->findOrFail($id);
+        $user = Auth::user();
+        $notification = $user->notifications()->findOrFail($id);
         $notification->markAsRead();
         
         return response()->json(['status' => 'success']);
     }
 
-    // تعليم جميع النوتيفيكشنز كمقروء
+    /**
+     * Mark all notifications as read
+     */
     public function markAllAsRead()
     {
-        auth()->user()->unreadNotifications->markAsRead();
+        $user = Auth::user();
+        $user->unreadNotifications->markAsRead();
         
         return response()->json(['status' => 'success']);
     }
 
-    // حذف نوتيفيكشن
+    /**
+     * Delete a notification
+     */
     public function destroy($id)
     {
-        $notification = auth()->user()->notifications()->findOrFail($id);
+        $user = Auth::user();
+        $notification = $user->notifications()->findOrFail($id);
         $notification->delete();
         
         return response()->json(['status' => 'success']);

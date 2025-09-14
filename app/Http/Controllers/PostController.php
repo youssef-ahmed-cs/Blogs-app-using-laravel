@@ -17,20 +17,26 @@ class PostController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index()
-    {
-        $posts = Post::with(['user.profile', 'likes'])
-                    ->withCount(['likes', 'comments'])
-                    ->latest()
-                    ->paginate(10);
-        
-        return view('Posts.index', compact('posts'));
-    }
+public function index()
+{
+    $posts = Post::with(['user.profile']) // user + profile
+                 ->withCount(['likes', 'comments']) // عدد اللايكات والكومنتات
+                 ->latest()
+                 ->paginate(10);
+
+    return view('Posts.index', compact('posts'));
+}
+
 
     public function show(Post $post)
     {
         // Load the post with relationships and counts
-        $post->load(['user.profile', 'likes', 'comments.user.profile'])
+        $post->load([
+                'user.profile',
+                'likes',
+                'comments.user.profile',
+                'comments.replies.user.profile',
+            ])
              ->loadCount(['likes', 'comments']);
         
         // Get related posts or recent posts for the feed
@@ -41,7 +47,103 @@ class PostController extends Controller
                     ->take(5)
                     ->get();
         
+        // Increment view count when accessing the post directly
+        $post->increment('views');
+        
         return view('Posts.show', compact('post', 'posts'));
+    }
+    
+    /**
+     * Record a view for the post
+     */
+    public function recordView(Post $post)
+    {
+        $post->increment('views');
+        
+        return response()->json([
+            'success' => true,
+            'views' => $post->views
+        ]);
+    }
+    
+    /**
+     * Handle post sharing
+     */
+    public function share(Request $request, Post $post)
+    {
+        // Validate request
+        $request->validate([
+            'platform' => 'required|string|in:facebook,twitter,whatsapp,telegram,copy'
+        ]);
+        
+        // Record the share activity
+        $post->increment('shares');
+        
+        // Get the share URL based on the platform
+        $shareUrl = route('posts.show', $post);
+        $postTitle = $post->title ?: substr($post->description, 0, 60) . '...';
+        
+        $urls = [
+            'facebook' => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($shareUrl),
+            'twitter' => 'https://twitter.com/intent/tweet?text=' . urlencode($postTitle) . '&url=' . urlencode($shareUrl),
+            'whatsapp' => 'https://api.whatsapp.com/send?text=' . urlencode($postTitle . ' ' . $shareUrl),
+            'telegram' => 'https://t.me/share/url?url=' . urlencode($shareUrl) . '&text=' . urlencode($postTitle),
+            'copy' => $shareUrl,
+        ];
+        
+        return response()->json([
+            'success' => true, 
+            'url' => $urls[$request->platform],
+            'shares' => $post->shares
+        ]);
+    }
+    
+    /**
+     * Share preview for social media
+     */
+    public function sharePreview(Post $post)
+    {
+        return view('Posts.share-preview', compact('post'));
+    }
+    
+    /**
+     * Reshare a post as a new post with a quote
+     */
+    public function reshare(Request $request, Post $post)
+    {
+        // Validate request
+        $request->validate([
+            'quote' => 'nullable|string|max:500',
+            'title' => 'nullable|string|max:255',
+        ]);
+        
+        // Create a new post as a reshare
+        $newPost = new Post();
+        $newPost->user_id = Auth::id();
+        $newPost->title = $request->has('title') ? $request->title : 'Reshared: ' . substr($post->title ?? '', 0, 240);
+        $newPost->description = $post->title ?? ''; // Use original post title as description
+        $newPost->quote = $request->quote ?? ''; // Store the quote in the dedicated field
+        $newPost->original_post_id = $post->id;
+        $newPost->is_reshare = true;
+        $newPost->save();
+        
+        // Increment the share count on the original post
+        $post->increment('shares');
+        
+        // Notify the original post author if they're not the same as the resharing user
+        if ($post->user_id != Auth::id()) {
+            $post->user->notify(new \App\Notifications\PostInteraction(
+                Auth::user(),
+                $post,
+                'reshare'
+            ));
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Post reshared successfully',
+            'redirect' => route('posts.show', $newPost)
+        ]);
     }
 
     public function create()
@@ -49,37 +151,25 @@ class PostController extends Controller
         return view('Posts.create');
     }
 
-public function store(Request $request, Post $post)
-{
-    $request->validate([
-        'content' => 'required|string|max:500',
-        'parent_id' => 'nullable|exists:comments,id'
-    ]);
-
-    $comment = $post->comments()->create([
-        'user_id' => auth()->id(),
-        'content' => $request->content,
-        'parent_id' => $request->parent_id,
-    ]);
-
-    // إذا كان طلب AJAX
-    if($request->ajax()){
-        return response()->json([
-            'status' => 'success',
-            'comment' => [
-                'id' => $comment->id,
-                'content' => $comment->content,
-                'user_name' => $comment->user->name,
-                'user_image' => $comment->user->profile?->profile_image
-                                 ? asset('storage/'.$comment->user->profile->profile_image)
-                                 : asset('images/default-avatar.png'),
-                'user_profile' => route('profile.public', $comment->user->id)
-            ]
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image_post'  => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
-    }
 
-    return redirect()->back();
-}
+        Post::create([
+            'user_id'    => Auth::id(),
+            'title'      => $request->title,
+            'description'=> $request->description,
+            'image_post' => $request->hasFile('image_post')
+                ? $request->file('image_post')->store('posts', 'public')
+                : null,
+        ]);
+
+        return redirect()->back()->with('success', 'تم نشر البوست بنجاح 🎉');
+    }
 
 
     public function edit(Post $post)
@@ -100,20 +190,22 @@ public function store(Request $request, Post $post)
         }
 
         $request->validate([
-            'content' => 'required|max:1000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'image_post' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $data = [
-            'content' => $request->content,
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
         ];
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('image_post')) {
             // Delete old image if exists
-            if ($post->image) {
-                Storage::disk('public')->delete($post->image);
+            if ($post->image_post) {
+                Storage::disk('public')->delete($post->image_post);
             }
-            $data['image'] = $request->file('image')->store('posts', 'public');
+            $data['image_post'] = $request->file('image_post')->store('posts', 'public');
         }
 
         $post->update($data);

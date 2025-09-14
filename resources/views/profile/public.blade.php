@@ -108,7 +108,18 @@
     .fb-profile-username {
         font-size: 1.1rem;
         color: #65676b;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .fb-profile-bio {
+        max-width: 600px;
+        line-height: 1.5;
+    }
+    
+    .fb-profile-bio p {
+        font-size: 1rem;
+        margin-bottom: 0.8rem;
+        white-space: pre-line;
     }
     
     .fb-profile-actions {
@@ -193,22 +204,24 @@
         </div>
     @endif
 
-    <div class="card border-0 shadow-sm mb-5">
+    <div class="card border-0 shadow-sm mb-5 profile-info">
         <!-- Cover Header -->
-        <div class="fb-cover-container">
-            @if($user->profile?->cover_image)
-                <img id="coverImage" class="fb-cover-img" 
-                     src="{{ asset('storage/'.$user->profile->cover_image) }}" 
-                     alt="Cover">
-            @else
-                <div class="fb-cover-img d-flex align-items-center justify-content-center"
-                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div class="text-white text-center">
-                        <i class="bi bi-image fs-1 mb-2"></i>
-                        <p class="mb-0">No cover photo</p>
+        <div class="fb-cover-container profile-header">
+            <div class="profile-cover">
+                @if($user->profile?->cover_image)
+                    <img id="coverImage" class="fb-cover-img" 
+                         src="{{ asset('storage/'.$user->profile->cover_image) }}" 
+                         alt="Cover">
+                @else
+                    <div class="fb-cover-img d-flex align-items-center justify-content-center"
+                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="text-white text-center">
+                            <i class="bi bi-image fs-1 mb-2"></i>
+                            <p class="mb-0">No cover photo</p>
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
+            </div>
 
             <div class="fb-cover-gradient"></div>
 
@@ -232,7 +245,7 @@
         <!-- Profile Section -->
         <div class="fb-profile-section">
             <!-- Profile Avatar -->
-            <div class="fb-profile-avatar-container">
+            <div class="fb-profile-avatar-container profile-avatar">
                 <img class="fb-profile-avatar"
                      src="{{ $user->profile && $user->profile->profile_image ? asset('storage/'.$user->profile->profile_image) : '/images/default-avatar.png' }}"
                      alt="Profile">
@@ -250,7 +263,13 @@
             <!-- Profile Details -->
             <div class="fb-profile-details">
                 <div class="fb-profile-name">{{ $user->name }}</div>
-                <div class="fb-profile-username text-muted mb-3">{{ '@' . strtolower(str_replace(' ', '', $user->name ?? 'User')) }}</div>
+                <div class="fb-profile-username text-muted">{{ '@' . strtolower(str_replace(' ', '', $user->name ?? 'User')) }}</div>
+                
+                @if($user->profile?->bio)
+                <div class="fb-profile-bio mb-3">
+                    <p class="text-muted">{{ nl2br(e($user->profile->bio)) }}</p>
+                </div>
+                @endif
                 
                 <div class="fb-profile-actions">
                     <!-- Followers Button -->

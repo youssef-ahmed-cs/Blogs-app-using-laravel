@@ -3,75 +3,90 @@
 @section('title', 'Home - FaceBog')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-@auth
-<!-- Create Post Modal Trigger -->
-<div class="card mb-4">
-    <div class="card-body d-flex align-items-center">
-        <img src="{{ auth()->user()->profile?->profile_image 
-            ? asset('storage/'.auth()->user()->profile->profile_image) 
-            : 'https://via.placeholder.com/40x40.png?text=U' }}" 
-            alt="Profile" width="40" height="40" class="rounded-circle me-3">
-
-        <div class="flex-grow-1">
-            <button class="form-control text-start text-muted p-3" 
-                    style="border-radius: 25px; cursor: pointer;"
-                    data-bs-toggle="modal" data-bs-target="#createPostModal">
-                ماذا تفكر، {{ auth()->user()->name }}؟
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal -->
-<div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow-lg animate__animated animate__fadeInDown">
-            <div class="modal-header border-0">
-                <h5 class="modal-title">إنشاء بوست جديد</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="container-fluid px-0 py-4">
+    <div class="row justify-content-center mx-0">
+        <div class="col-lg-6 col-md-8 home-feed" style="padding-bottom: 30px; padding-top: 10px;">
+            <!-- Main content area -->
+            @auth
+            <!-- Create Post Modal Trigger -->
+            <div class="card mb-4 create-post-card shadow-sm">
+                <div class="card-body d-flex align-items-center py-3">
+                    <a href="{{ route('profile.public', auth()->id()) }}" class="me-3">
+                        <img src="{{ auth()->user()->profile?->profile_image ? asset('storage/'.auth()->user()->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text=U' }}" 
+                            alt="Profile" width="42" height="42" class="rounded-circle">
+                    </a>
+                    <div class="flex-grow-1">
+                        <button class="form-control text-start text-muted py-2 px-3" style="border-radius: 25px; cursor: pointer; background-color: #f0f2f5; border-color: transparent;" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                            What's on your mind, {{ auth()->user()->name }}?
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body">
-                    <input type="text" name="title" class="form-control mb-2" placeholder="عنوان البوست" required>
-                    <textarea name="description" class="form-control mb-2 rounded-3" rows="3" placeholder="بماذا تفكر؟"></textarea>
-                    <input type="file" name="image_post" class="form-control mt-2">
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">نشر</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+            <!-- Modal -->
+            <div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 shadow-lg animate__animated animate__fadeInDown">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title">إنشاء بوست جديد</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
 
-@push('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<style>
-    .modal-content {
-        transition: transform 0.2s ease-in-out;
-    }
-    .modal-content:hover {
-        transform: scale(1.02);
-    }
-</style>
-@endpush
-@endauth
+                        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="modal-body">
+                                <input type="text" name="title" class="form-control mb-2" placeholder="عنوان البوست" required>
+                                <textarea name="description" class="form-control mb-2 rounded-3" rows="3" placeholder="بماذا تفكر؟"></textarea>
+                                <input type="file" name="image_post" class="form-control mt-2">
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="submit" class="btn btn-primary rounded-pill px-4">نشر</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            @push('styles')
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+            <style>
+                .modal-content { transition: transform 0.2s ease-in-out; }
+                .modal-content:hover { transform: scale(1.02); }
+                
+                /* Reshared post styles */
+                .reshared-post-card {
+                    border-left: 3px solid #FF11A7;
+                }
+                .reshared-post {
+                    border-radius: 8px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+                    transition: transform 0.3s ease;
+                    color: #fff;
+                    background: rgba(34, 0, 51, 0.8);
+                    border: 1px solid #FF11A7;
+                }
+                .reshared-post:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 0 15px #FF11A7;
+                }
+            </style>
+            @endpush
+            @endauth
 
             <!-- Posts Feed -->
             @forelse($posts as $post)
-            <div class="card mb-4" id="post-{{ $post->id }}">
-                <div class="card-header bg-white border-0 pb-0">
+            <!-- Individual Post Container -->
+            <div class="post-container fade-in-up">
+                <div class="card post-card {{ $post->isReshare() ? 'reshared-post-card' : '' }}" id="post-{{ $post->id }}">
+                <div class="card-header border-0">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
-                            <img src="{{ $post->user->profile?->profile_image ? asset('storage/'.$post->user->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text=U' }}" 
-                                 alt="Profile" width="40" height="40" class="rounded-circle me-3">
+                            <a href="{{ route('profile.public', $post->user->id) }}" class="text-decoration-none me-2">
+                                <img src="{{ $post->user->profile?->profile_image ? asset('storage/'.$post->user->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text=U' }}" 
+                                    alt="Profile" width="40" height="40" class="rounded-circle">
+                            </a>
                             <div>
-                                <h6 class="mb-0">
+                                <h6 class="mb-0 fw-bold">
                                     <a href="{{ route('profile.public', $post->user->id) }}" class="text-decoration-none">
                                         {{ $post->user->name }}
                                     </a>
@@ -108,65 +123,105 @@
                     </div>
                 </div>
 
-                <div class="card-body">
-                    @if($post->title)
-                    <h5>{{ $post->title }}</h5>
+                <div class="card-body pb-1">
+                    @if($post->isReshare() && $post->quote)
+                    <p class="mb-3 post-content">{{ $post->quote }}</p>
                     @endif
-                    <p>{{ $post->description }}</p>
+                    
+                    @if($post->isReshare() && $post->originalPost)
+                    <!-- Reshared Post -->
+                    <div class="reshared-post border rounded p-3 mb-3 bg-light">
+                        <div class="d-flex align-items-center mb-2">
+                            <a href="{{ route('profile.public', $post->originalPost->user->id) }}" class="text-decoration-none me-2">
+                                <img src="{{ $post->originalPost->user->profile?->profile_image ? asset('storage/'.$post->originalPost->user->profile->profile_image) : 'https://via.placeholder.com/40x40.png?text=U' }}" 
+                                    alt="Profile" width="30" height="30" class="rounded-circle">
+                            </a>
+                            <div>
+                                <h6 class="mb-0 fw-bold">
+                                    <a href="{{ route('profile.public', $post->originalPost->user->id) }}" class="text-decoration-none">
+                                        {{ $post->originalPost->user->name }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">{{ $post->originalPost->created_at->diffForHumans() }}</small>
+                            </div>
+                        </div>
+                        
+                        @if($post->originalPost->title)
+                        <h6 class="fw-bold mb-2">{{ $post->originalPost->title }}</h6>
+                        @endif
+                        <p class="mb-3 small">{{ $post->originalPost->description }}</p>
+
+                        @if($post->originalPost->image_post)
+                        <div class="post-image-container post-img-container">
+                            <img src="{{ asset('storage/'.$post->originalPost->image_post) }}" 
+                                 class="img-fluid w-100" alt="Original Post Image">
+                        </div>
+                        @endif
+                    </div>
+                    @else
+                    <!-- Regular Post -->
+                    @if($post->title)
+                    <h5 class="fw-bold mb-2">{{ $post->title }}</h5>
+                    @endif
+                    <p class="mb-3 post-content">{{ $post->description }}</p>
 
                     @if($post->image_post)
-                    <img src="{{ asset('storage/'.$post->image_post) }}" 
-                         class="img-fluid rounded mb-3" alt="Post Image">
+                    <div class="post-image-container post-img-container">
+                        <img src="{{ asset('storage/'.$post->image_post) }}" 
+                             class="img-fluid w-100" alt="Post Image">
+                    </div>
+                    @endif
                     @endif
 
                     <!-- Post Stats -->
-                    <div class="d-flex justify-content-between align-items-center text-muted mb-3">
+                    <div class="d-flex justify-content-between align-items-center text-muted my-2 px-1 py-1">
                         <div class="stats-like-count">
                             @if(($post->likes_count ?? 0) > 0)
                                 <i class="bi bi-heart-fill text-danger me-1"></i> 
-                                <span>{{ $post->likes_count }} {{ $post->likes_count == 1 ? 'like' : 'likes' }}</span>
+                                <span>{{ $post->likes_count }}</span>
                             @else
-                                <span class="text-muted">No likes yet</span>
+                                <span class="text-muted small">Be the first to like this</span>
                             @endif
                         </div>
                         <div>
                             @if($post->comments_count > 0)
-                                <i class="bi bi-chat-dots me-1"></i>
-                                <span>{{ $post->comments_count }} {{ $post->comments_count == 1 ? 'comment' : 'comments' }}</span>
+                                <span>{{ $post->comments_count }} {{ Str::plural('comment', $post->comments_count) }}</span>
                             @endif
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="d-flex border-top pt-2">
+                    <div class="post-actions d-flex border-top pt-2">
                         @auth
-                        <button class="btn btn-light flex-fill me-2 like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger' : '' }}"
+                        <button class="btn like-btn {{ $post->isLikedBy(auth()->user()) ? 'text-danger active' : '' }}" 
                                 data-post-id="{{ $post->id }}">
-                            <i class="bi bi-heart{{ $post->isLikedBy(auth()->user()) ? '-fill' : '' }}"></i> 
-                            <span class="like-text">{{ $post->isLikedBy(auth()->user()) ? 'Liked' : 'Like' }}</span>
-                            <span class="like-count ms-1">({{ $post->likes_count }})</span>
+                            <i class="bi {{ $post->isLikedBy(auth()->user()) ? 'bi-heart-fill' : 'bi-heart' }} me-2"></i>
+                            <span>Like</span>
                         </button>
                         @else
-                        <button class="btn btn-light flex-fill me-2 require-auth" data-action="like">
-                            <i class="bi bi-heart"></i> 
+                        <button class="btn require-auth" data-action="like">
+                            <i class="bi bi-heart me-2"></i> 
                             <span>Like</span>
-                            <span class="like-count ms-1">({{ $post->likes_count }})</span>
                         </button>
                         @endauth
 
-                        <button class="btn btn-light flex-fill me-2 {{ !auth()->check() ? 'require-auth' : '' }}" 
+                        <button class="btn {{ !auth()->check() ? 'require-auth' : '' }}" 
                                 onclick="toggleComments({{ $post->id }})"
                                 data-action="comment">
-                            <i class="bi bi-chat"></i> Comment
+                            <i class="bi bi-chat me-2"></i> Comment
                         </button>
 
-                        <a href="{{ route('posts.show', $post) }}" class="btn btn-light flex-fill">
-                            <i class="bi bi-eye"></i> View
+                        <a href="{{ route('posts.show', $post) }}" class="btn">
+                            <i class="bi bi-eye me-2"></i> View
+                        </a>
+                        
+                        <a href="{{ route('posts.show', $post) }}#share" class="btn share-post-btn" data-post-id="{{ $post->id }}">
+                            <i class="bi bi-share me-2"></i> Share
                         </a>
                     </div>
 
                     <!-- Comments Section -->
-                    <div id="comments-{{ $post->id }}" class="mt-3" style="display: none;">
+                    <div id="comments-{{ $post->id }}" class="comments-container p-3 border-top" style="display: none;">
                         @auth
                         <form action="{{ route('comments.store', $post) }}" method="POST" class="mb-3">
                             @csrf
@@ -174,7 +229,7 @@
                                 <img src="{{ auth()->user()->profile?->profile_image ? asset('storage/'.auth()->user()->profile->profile_image) : 'https://via.placeholder.com/32x32.png?text=U' }}" 
                                      alt="Profile" width="32" height="32" class="rounded-circle me-2">
                                 <div class="flex-grow-1">
-                                    <input type="text" name="content" class="form-control rounded-pill" 
+                                    <input type="text" name="content" class="form-control rounded-pill comment-input" 
                                            placeholder="Write a comment..." required>
                                 </div>
                             </div>
@@ -190,74 +245,57 @@
                         @endauth
 
                         <!-- Recent Comments -->
-<!-- Recent Comments & Replies -->
-@foreach($post->comments->take(3) as $comment)
-<div class="comment-item mb-2">
-    <div class="d-flex align-items-start">
-        <img src="{{ $comment->user->profile?->profile_image ? asset('storage/'.$comment->user->profile->profile_image) : 'https://via.placeholder.com/32x32.png?text=U' }}" 
-             alt="Profile" width="32" height="32" class="rounded-circle me-2">
-        <div class="flex-grow-1">
-            <div class="bg-light rounded p-2">
-                <strong>{{ $comment->user->name }}</strong>
-                <p class="mb-0">{{ $comment->content }}</p>
-            </div>
-            <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-            
-            <!-- Reply Button -->
-            @auth
-            <button class="btn btn-sm btn-link reply-btn text-primary mt-1">Reply</button>
-
-            <!-- Reply Form (hidden by default) -->
-            <form action="{{ route('comments.store', $post) }}" method="POST" class="reply-form d-none mt-1">
-                @csrf
-                <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                <div class="d-flex">
-                    <input type="text" name="content" class="form-control form-control-sm rounded-pill me-2" placeholder="Write a reply..." required>
-                    <button type="submit" class="btn btn-primary btn-sm">Send</button>
-                </div>
-            </form>
-            @endauth
-
-            <!-- Reply Thread -->
-            <div class="reply-thread ms-4 mt-2"></div>
-        </div>
-    </div>
-</div>
-@endforeach
-
-
-                        @if($post->comments->count() > 3)
-                        <a href="{{ route('posts.show', $post) }}" class="text-primary">
-                            View all {{ $post->comments->count() }} comments
-                        </a>
-                        @endif
+                        <div class="recent-comments-container">
+                            @foreach($post->comments->where('parent_id', null)->take(2) as $comment)
+                                @include('Partials.comment-thread', ['comment' => $comment, 'showReplies' => false])
+                            @endforeach
+                            
+                            @if($post->comments->count() > 2)
+                                <div class="text-center mt-2">
+                                    <a href="{{ route('posts.show', $post) }}" class="text-primary view-more-comments">
+                                        <i class="bi bi-chat-text me-1"></i> View all {{ $post->comments->count() }} comments
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
+            </div>
             @empty
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-body text-center py-5">
-                    <i class="bi bi-chat-dots fs-1 text-muted mb-3"></i>
-                    <h5>No posts yet</h5>
-                    <p class="text-muted">Be the first to share something!</p>
+                    <i class="bi bi-journal-richtext fs-1 text-primary mb-4"></i>
+                    <h4 class="fw-bold">No posts yet</h4>
+                    <p class="text-muted mb-4">When you or your friends post content, you'll see it here.</p>
                     @auth
-                    <a href="{{ route('posts.create') }}" class="btn btn-primary">Create Post</a>
+                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#createPostModal" class="btn btn-primary px-4 py-2 rounded-pill">
+                        <i class="bi bi-plus-lg me-2"></i> Create Your First Post
+                    </a>
                     @else
-                    <a href="{{ route('register') }}" class="btn btn-primary">Join FaceBog</a>
+                    <a href="{{ route('register') }}" class="btn btn-primary px-4 py-2 rounded-pill">
+                        <i class="bi bi-person-plus me-2"></i> Join FaceBog
+                    </a>
                     @endauth
                 </div>
             </div>
             @endforelse
 
             <!-- Pagination -->
-            <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-center my-4">
                 {{ $posts->links() }}
             </div>
+            
         </div>
     </div>
 </div>
+@endsection
+
 @push('styles')
 <style>
+/* Comment thread styling */
+.reply-thread { border-left: 2px solid #e5e7eb; padding-left: 12px; margin-left: 8px; }
+.reply-thread .comment-item { margin-top: 6px; }
 .reply-btn {
     cursor: pointer;
     transition: color 0.2s, transform 0.2s;
@@ -266,151 +304,418 @@
     color: #0d6efd;
     transform: scale(1.1);
 }
-.reply-thread .comment-item {
-    border-left: 2px solid #ddd;
-    padding-left: 10px;
-    margin-top: 8px;
-}
 .comment-item.animate__animated.animate__fadeIn {
     animation-duration: 0.5s;
 }
+
+/* Share button styling */
+.share-post-btn {
+    color: #65676b;
+    transition: all 0.2s ease;
+}
+.share-post-btn:hover {
+    color: #0078ff;
+    background-color: rgba(0, 120, 255, 0.1);
+}
+.share-post-btn i {
+    font-size: 1.1rem;
+}
+
+/* Loading spinner */
+.spin {
+    animation: spinner 0.8s linear infinite;
+    display: inline-block;
+}
+@keyframes spinner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Facebook-style post cards */
+.post-card {
+    margin-bottom: 16px !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+}
+
+.post-card .card-header {
+    padding: 12px 15px;
+    background-color: white;
+    border-bottom: none;
+}
+
+.post-card .card-body {
+    padding: 0 15px 10px;
+}
+
+/* Post actions bar */
+.post-actions {
+    border-top: 1px solid #f0f2f5;
+    padding: 6px 0;
+    margin: 8px 0 0;
+}
+
+.post-actions .btn {
+    border-radius: 6px;
+    flex: 1;
+    color: #65676b;
+    background-color: transparent;
+    transition: background-color 0.2s;
+    font-weight: 500;
+    padding: 8px 0;
+}
+
+.post-actions .btn:hover {
+    background-color: #f0f2f5;
+}
+
+/* Comments section styling */
+.comments-container {
+    background-color: white !important;
+    border-top: 1px solid #f0f2f5;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Like buttons */
+.like-btn.active, .like-btn.text-danger {
+    color: #e41e3f !important;
+    font-weight: 600;
+}
+
+/* Main content column */
+.home-feed {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* Image container */
+.post-image-container {
+    margin: 8px -16px 10px !important;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 500px;
+    overflow: hidden;
+}
+.post-image-container img {
+    width: 100%;
+    object-fit: cover;
+    max-height: 500px;
+}
+
+/* Post stats area */
+.stats-like-count {
+    font-size: 0.9rem;
+    padding: 4px 0;
+}
+
+/* Improved spacing between posts */
+.post-container {
+    margin-bottom: 16px !important;
+    width: 100%;
+    max-width: 680px;
+    background-color: transparent;
+    padding: 0;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 20px;
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 </style>
 @endpush
+
+<!-- Share Modal -->
+<div class="modal fade" id="sharePostModal" tabindex="-1" aria-labelledby="sharePostModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sharePostModalLabel">Share Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-column">
+                    <div class="share-preview mb-3 border rounded p-3">
+                        <!-- Dynamic content will be loaded here -->
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="share-options d-flex justify-content-between flex-wrap">
+                        <button class="btn btn-outline-primary mb-2 share-platform-btn" data-platform="facebook">
+                            <i class="bi bi-facebook me-2"></i>Facebook
+                        </button>
+                        <button class="btn btn-outline-info mb-2 share-platform-btn" data-platform="twitter">
+                            <i class="bi bi-twitter me-2"></i>Twitter
+                        </button>
+                        <button class="btn btn-outline-success mb-2 share-platform-btn" data-platform="whatsapp">
+                            <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                        </button>
+                        <button class="btn btn-outline-info mb-2 share-platform-btn" data-platform="telegram">
+                            <i class="bi bi-telegram me-2"></i>Telegram
+                        </button>
+                        <button class="btn btn-outline-secondary mb-2 copy-link-btn" data-platform="copy">
+                            <i class="bi bi-clipboard me-2"></i>Copy Link
+                        </button>
+                    </div>
+                    
+                    <div class="copy-alert alert alert-success mt-3 d-none">
+                        <i class="bi bi-check-circle-fill me-2"></i>Link copied successfully!
+                    </div>
+                    
+                    <div class="share-stats border-top mt-3 pt-3 text-center">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <i class="bi bi-eye me-2"></i>
+                            <span id="modal-view-count">0</span>
+                            <span class="mx-3">•</span>
+                            <i class="bi bi-share me-2"></i>
+                            <span id="modal-share-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
 <script>
+// Share Post Functionality
+let currentPostId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click event for share buttons
+    document.querySelectorAll('.share-post-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const postId = this.getAttribute('data-post-id');
+            currentPostId = postId;
+            
+            // Show modal
+            const shareModal = new bootstrap.Modal(document.getElementById('sharePostModal'));
+            shareModal.show();
+            
+            // Load post preview
+            loadPostPreview(postId);
+            
+            // Update view count
+            updateViewCount(postId);
+        });
+    });
+    
+    // Share platform buttons
+    document.querySelectorAll('#sharePostModal .share-platform-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!currentPostId) return;
+            
+            const platform = this.getAttribute('data-platform');
+            sharePost(currentPostId, platform);
+        });
+    });
+    
+    // Copy link button
+    const copyButton = document.querySelector('#sharePostModal .copy-link-btn');
+    const copyAlert = document.querySelector('#sharePostModal .copy-alert');
+    
+    if (copyButton) {
+        copyButton.addEventListener('click', function() {
+            if (!currentPostId) return;
+            
+            // Copy the post URL to clipboard
+            const postUrl = window.location.origin + '/posts/' + currentPostId;
+            navigator.clipboard.writeText(postUrl).then(function() {
+                copyAlert.classList.remove('d-none');
+                setTimeout(() => {
+                    copyAlert.classList.add('d-none');
+                }, 3000);
+                
+                // Record the share
+                sharePost(currentPostId, 'copy');
+            });
+        });
+    }
+});
+
+// Function to load post preview
+function loadPostPreview(postId) {
+    const previewContainer = document.querySelector('#sharePostModal .share-preview');
+    
+    fetch(`/posts/${postId}`)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Extract post information
+            const postUser = doc.querySelector('.post-card .card-body a.fw-bold').textContent.trim();
+            const postTime = doc.querySelector('.post-card .card-body small.text-muted').textContent.trim();
+            const postTitle = doc.querySelector('.post-card .card-body h5')?.textContent.trim();
+            const postDesc = doc.querySelector('.post-card .card-body p.mb-2').textContent.trim();
+            const postImage = doc.querySelector('.post-card .card-body .post-img img')?.getAttribute('src');
+            const userImage = doc.querySelector('.post-card .card-body .rounded-circle')?.getAttribute('src');
+            const viewCount = doc.querySelector('#view-count')?.textContent || '0';
+            const shareCount = doc.querySelector('#share-count')?.textContent || '0';
+            
+            // Update modal stats
+            document.getElementById('modal-view-count').textContent = viewCount;
+            document.getElementById('modal-share-count').textContent = shareCount;
+            
+            // Build preview HTML
+            let previewHTML = `
+                <div class="d-flex align-items-center mb-2">
+                    <img src="${userImage || 'https://via.placeholder.com/40x40.png?text=U'}" 
+                        class="rounded-circle me-2" width="40" height="40" alt="${postUser}">
+                    <div>
+                        <strong>${postUser}</strong>
+                        <div class="text-muted small">${postTime}</div>
+                    </div>
+                </div>
+                <div class="preview-content">
+                    ${postTitle ? `<h6 class="mb-1">${postTitle}</h6>` : ''}
+                    <p class="small mb-2 text-truncate">${postDesc}</p>
+                    ${postImage ? `
+                        <div class="text-center border-top pt-2">
+                            <img src="${postImage}" class="img-fluid rounded" style="max-height:150px; object-fit:cover;">
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            previewContainer.innerHTML = previewHTML;
+        })
+        .catch(error => {
+            console.error('Error loading post preview:', error);
+            previewContainer.innerHTML = `<div class="alert alert-danger">Error loading preview</div>`;
+        });
+}
+
+// Function to share post
+function sharePost(postId, platform) {
+    fetch(`/posts/${postId}/share`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ platform: platform })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update share count in the modal
+            const shareCount = document.getElementById('modal-share-count');
+            if (shareCount) {
+                shareCount.textContent = data.shares;
+            }
+            
+            // For platforms other than "copy", open a new window
+            if (platform !== 'copy') {
+                window.open(data.url, '_blank', 'width=600,height=400');
+            }
+        }
+    })
+    .catch(error => console.error('Error sharing post:', error));
+}
+
+// Function to update view count
+function updateViewCount(postId) {
+    fetch(`/posts/${postId}/view`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const viewCount = document.getElementById('modal-view-count');
+            if (viewCount) {
+                viewCount.textContent = data.views;
+            }
+        }
+    });
+}
+
+// Toggle Comments
 function toggleComments(postId) {
-    const commentsDiv = document.getElementById('comments-' + postId);
-    if (commentsDiv.style.display === 'none' || commentsDiv.style.display === '') {
-        commentsDiv.style.display = 'block';
+    const commentsContainer = document.getElementById(`comments-${postId}`);
+    const commentBtn = document.querySelector(`button[onclick="toggleComments(${postId})"]`);
+    
+    if (commentsContainer.style.display === 'none' || !commentsContainer.style.display) {
+        // Show loading spinner in button
+        if (commentBtn) {
+            const originalButtonText = commentBtn.innerHTML;
+            commentBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-1"></i> Loading...';
+            commentBtn.disabled = true;
+            
+            // Add active class
+            commentBtn.classList.add('active', 'bg-light');
+        }
+        
+        // Show comments with animation after small delay (simulates loading)
+        setTimeout(() => {
+            commentsContainer.style.display = 'block';
+            commentsContainer.classList.add('animate__animated', 'animate__fadeIn');
+            
+            // Reset button
+            if (commentBtn) {
+                commentBtn.innerHTML = '<i class="bi bi-chat"></i> Comment';
+                commentBtn.disabled = false;
+            }
+            
+            // Focus on comment input if user is authenticated
+            const commentInput = commentsContainer.querySelector('input[name="content"]');
+            if (commentInput) {
+                setTimeout(() => {
+                    commentInput.focus();
+                }, 300);
+            }
+        }, 500);
     } else {
-        commentsDiv.style.display = 'none';
+        // Hide comments with animation
+        commentsContainer.classList.add('animate__animated', 'animate__fadeOut');
+        
+        setTimeout(() => {
+            commentsContainer.style.display = 'none';
+            commentsContainer.classList.remove('animate__animated', 'animate__fadeOut');
+        }, 300);
+        
+        // Remove active class from the comment button
+        if (commentBtn) {
+            commentBtn.classList.remove('active', 'bg-light');
+        }
     }
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-    // Reply Button Toggle
-    document.querySelectorAll('.reply-btn').forEach(btn => {
-        btn.addEventListener('click', function(){
-            const form = btn.closest('.comment-item').querySelector('.reply-form');
-            form.classList.toggle('d-none');
-            form.querySelector('input[name="content"]').focus();
-        });
+function updateViewCount(postId) {
+    fetch(`/posts/${postId}/view`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+    .then(data => {
+        // Update the view count in the UI if needed
+        const viewCountElement = document.querySelector(`#view-count-${postId}`);
+        if (viewCountElement && data.views) {
+            viewCountElement.textContent = data.views;
+        }
     });
-
-    // AJAX Reply Submission
-    document.querySelectorAll('.reply-form').forEach(form => {
-        form.addEventListener('submit', function(e){
-            e.preventDefault();
-            const input = form.querySelector('input[name="content"]');
-            const content = input.value.trim();
-            if(!content) return;
-
-            const postId = '{{ $post->id }}'; 
-            const parentId = form.querySelector('input[name="parent_id"]').value;
-
-            fetch('/posts/' + postId + '/comments', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: content, parent_id: parentId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success'){
-                    const div = document.createElement('div');
-                    div.classList.add('comment-item','animate__animated','animate__fadeIn','mt-2');
-                    div.innerHTML = `
-                        <img src="${data.comment.user_image}" class="rounded-circle me-2" width="32" height="32">
-                        <div class="flex-grow-1">
-                            <div class="bg-light rounded p-2">
-                                <strong>${data.comment.user_name}</strong>
-                                <p class="mb-0">${data.comment.content}</p>
-                            </div>
-                            <small class="text-muted">الآن</small>
-                        </div>
-                    `;
-                    form.closest('.comment-item').querySelector('.reply-thread').appendChild(div);
-                    input.value = '';
-                }
-            })
-            .catch(err => console.error(err));
-        });
-    });
-});
-
-// Like functionality
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.like-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const postId = this.dataset.postId;
-            const icon = this.querySelector('i');
-            const likeText = this.querySelector('.like-text');
-            const likeCount = this.querySelector('.like-count');
-            const statsLikeCount = document.querySelector(`#post-${postId} .stats-like-count`);
-            
-            console.log('Like button clicked for post:', postId);
-            
-            // Get CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]');
-            if (!csrfToken) {
-                console.error('CSRF token not found');
-                return;
-            }
-            
-            fetch(`/posts/${postId}/toggle-like`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data);
-                
-                if (data.success) {
-                    // Update button appearance
-                    if (data.liked) {
-                        this.classList.add('text-danger');
-                        icon.classList.remove('bi-heart');
-                        icon.classList.add('bi-heart-fill');
-                        if (likeText) likeText.textContent = 'Liked';
-                    } else {
-                        this.classList.remove('text-danger');
-                        icon.classList.remove('bi-heart-fill');
-                        icon.classList.add('bi-heart');
-                        if (likeText) likeText.textContent = 'Like';
-                    }
-                    
-                    // Update like count in button
-                    if (likeCount) {
-                        likeCount.textContent = `(${data.likes_count})`;
-                    }
-                    
-                    // Update like count in stats section
-                    if (statsLikeCount) {
-                        if (data.likes_count > 0) {
-                            statsLikeCount.innerHTML = `<i class="bi bi-heart-fill text-danger me-1"></i> <span>${data.likes_count} ${data.likes_count == 1 ? 'like' : 'likes'}</span>`;
-                        } else {
-                            statsLikeCount.innerHTML = `<span class="text-muted">No likes yet</span>`;
-                        }
-                    }
-                } else {
-                    console.error('Server returned error:', data);
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
-        });
-    });
-});
-
+}
 </script>
-@endsection
+@endpush

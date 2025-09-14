@@ -24,12 +24,26 @@ class CommentNotification extends Notification implements ShouldQueue
 
     public function toArray($notifiable): array
     {
+        $post = $this->comment->post;
+        $postTitle = $post ? ($post->title ?: $post->description) : '';
+        
+        // Limit post title/description length
+        if ($postTitle && strlen($postTitle) > 30) {
+            $postTitle = substr($postTitle, 0, 30) . '...';
+        }
+        
+        $commenter = $this->comment->user;
+        $commenterName = $commenter ? $commenter->name : 'Someone';
+        
         return [
             'comment_id' => $this->comment->id,
             'comment_content' => $this->comment->content,
-            'name' => $this->comment->user?->name,
-            'title' => $this->comment->post?->title,
-            'message' => $this->comment->user?->name . ' commented on your post: ' . $this->comment->post?->title,
+            'user_id' => $commenter ? $commenter->id : null,
+            'user_name' => $commenterName,
+            'post_id' => $post ? $post->id : null,
+            'post_title' => $postTitle,
+            'type' => 'comment',
+            'message' => $commenterName . ' commented on your post: "' . $postTitle . '"',
             'created_at' => $this->comment->created_at,
         ];
     }
